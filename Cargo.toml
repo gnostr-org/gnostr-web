@@ -1,14 +1,12 @@
 [package]
-name = "rusty-web"
-version = "0.0.2"
+name = "tejmagar"
+version = "0.1.0"
 edition = "2021"
-authors = ["Tej Magar"]
-description = "Rusty Web is a lightweight web framework for rust developers."
+authors = ["Tej Magar", "@RandyMcMillan <admin@gnostr.org>"]
+description = "rusty_web demo."
 license = "MIT"
 documentation = "https://tejmagar.github.io/rusty-web/"
 repository = "https://github.com/tejmagar/rusty-web/"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 regex = "1.10.3"

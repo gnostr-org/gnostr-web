@@ -1,0 +1,6 @@
+[submodule "tej-protoc"]
+	path = tej-protoc
+	url = git@github.com:tejmagar/tej-protoc.git
+[submodule "tej-protoc-rust"]
+	path = tej-protoc-rust
+	url = git@github.com:tejmagar/tej-protoc-rust.git

@@ -1,4 +1,7 @@
-# Rusty Web
+# tejmagar
+
+
+## rusty_web demo
 
 <img src="docs/rusty-web.png" alt="Rusty Web" width="100">
 
@@ -44,3 +47,6 @@ fn main() {
 ## Conclusion
 
 This framework don't force you to follow particular format. You can stream response however you like.
+=======
+# tejmagar
+>>>>>>> f8840f1 (cargo init)
