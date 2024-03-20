@@ -1,4 +1,4 @@
-/// Refer to this url for more information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+/// Refer to this url for more information: <https://developer.mozilla.org/en-US/docs/Web/HTTP/Status>
 #[derive(Debug)]
 pub enum Status {
     // Information responses
