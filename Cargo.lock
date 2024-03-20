@@ -147,8 +147,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "rusty-web"
-version = "0.0.2"
+name = "tejmagar"
+version = "0.1.0"
 dependencies = [
  "rand",
  "regex",
