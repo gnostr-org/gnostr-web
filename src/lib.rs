@@ -42,11 +42,11 @@ pub mod server {
 
     /// Example usage
     /// ```rust
-    /// use rusty_web::paths::{Path, Paths};
-    /// use rusty_web::request::Request;
-    /// use rusty_web::response::Response;
-    /// use rusty_web::server::run_server;
-    /// use rusty_web::status::Status;
+    /// use tejmagar::paths::{Path, Paths};
+    /// use tejmagar::request::Request;
+    /// use tejmagar::response::Response;
+    /// use tejmagar::server::run_server;
+    /// use tejmagar::status::Status;
     ///
     /// fn home(request: Request, mut response: Response) {
     ///    response.html(Status::Ok, "Home Page".to_string()).send();
