@@ -111,8 +111,8 @@ impl StatusMethods for Status {
             Status::Found => Some(302),
             Status::SeeOther => Some(303),
             Status::NotModified => Some(304),
-            Status::UseProxy => Some(305), // Depreciated
-            Status::UnUsed => Some(306), // Depreciated
+            Status::UseProxy => Some(305),          // Depreciated
+            Status::UnUsed => Some(306),            // Depreciated
             Status::TemporaryRedirect => Some(307), // No longer used, just reserved
             Status::PermanentRedirect => Some(308),
 
@@ -158,7 +158,7 @@ impl StatusMethods for Status {
             Status::InsufficientStorage => Some(507),
             Status::LoopDetected => Some(508),
             Status::NotExtended => Some(510),
-            Status::NetworkAuthenticationRequired => Some(511)
+            Status::NetworkAuthenticationRequired => Some(511),
         }
     }
 
@@ -188,8 +188,8 @@ impl StatusMethods for Status {
             302 => Some("Found".to_string()),
             303 => Some("See Other".to_string()),
             304 => Some("Not Modified".to_string()),
-            305 => Some("Use Proxy".to_string()),  // Depreciated
-            306 => Some("unused".to_string()), // Depreciated
+            305 => Some("Use Proxy".to_string()), // Depreciated
+            306 => Some("unused".to_string()),    // Depreciated
             307 => Some("Temporary Redirect".to_string()), // No longer used, just reserved
             308 => Some("Permanent Redirect".to_string()),
 
@@ -236,11 +236,10 @@ impl StatusMethods for Status {
             508 => Some("Loop Detected".to_string()),
             510 => Some("Not Extended".to_string()),
             511 => Some("Network Authentication Required".to_string()),
-            _ => None
+            _ => None,
         };
     }
 }
-
 
 pub trait StatusCode {
     fn to_usize(&self) -> usize;

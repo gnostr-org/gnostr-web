@@ -1,8 +1,8 @@
-pub mod status;
+pub mod headers;
 pub mod parser;
 pub mod request;
-pub mod headers;
 pub mod response;
+pub mod status;
 
 pub mod paths {
     use crate::request::Request;
@@ -21,24 +21,20 @@ pub mod paths {
         pub fn new(name: &str, view: T) -> Self {
             let name = name.to_string();
 
-            return Self {
-                name,
-                view,
-            };
+            return Self { name, view };
         }
     }
 }
 
-
 pub mod server {
-    use std::net::{Shutdown, TcpListener, TcpStream};
-    use std::sync::{Arc, RwLock};
-    use std::sync::atomic::{AtomicBool, Ordering};
-    use std::thread::spawn;
-    use crate::headers::{parse_request_method_header, extract_headers};
+    use crate::headers::{extract_headers, parse_request_method_header};
     use crate::paths::{Paths, SinglePath};
-    use crate::request::{Request};
+    use crate::request::Request;
     use crate::response::Response;
+    use std::net::{Shutdown, TcpListener, TcpStream};
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::{Arc, RwLock};
+    use std::thread::spawn;
 
     /// Example usage
     /// ```rust
@@ -121,8 +117,7 @@ pub mod server {
         }
     }
 
-    pub fn decode_request(mut stream: TcpStream, paths: Arc<RwLock<Paths>>,
-                          context: Arc<Context>) {
+    pub fn decode_request(mut stream: TcpStream, paths: Arc<RwLock<Paths>>, context: Arc<Context>) {
         let mut header_start = String::new();
         let mut partial_body_bytes = Vec::new();
 
@@ -154,8 +149,15 @@ pub mod server {
         let body_read = Arc::new(AtomicBool::from(false));
         let body_parsed = Arc::new(AtomicBool::from(false));
 
-        let mut request = Request::new(context, stream, method, raw_path, headers,
-                                       body_read.clone(), body_parsed.clone());
+        let mut request = Request::new(
+            context,
+            stream,
+            method,
+            raw_path,
+            headers,
+            body_read.clone(),
+            body_parsed.clone(),
+        );
         request.setup();
 
         // Some bytes are read unintentionally from the body. Set read value in the struct.

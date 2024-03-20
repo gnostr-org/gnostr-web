@@ -1,19 +1,19 @@
+use crate::headers;
+use crate::headers::Headers;
+use crate::parser::body::reader::BodyReader;
+use crate::parser::body::Limits;
+use crate::parser::multipart::reader::FormDataReader;
+use crate::parser::multipart::{FormPart, MultipartFormDataError};
+use crate::parser::url_encoded::reader::UrlEncodedReader;
+use crate::parser::url_encoded::{FormFields, UrlEncodedFormDataError};
+use crate::parser::{body, multipart, url_encoded};
+use crate::request::form::{FormData, FormFile, FormFiles};
+use crate::server::Context;
 use std::collections::HashMap;
 use std::net::TcpStream;
-use std::sync::{Arc};
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use tempfile::NamedTempFile;
-use crate::headers;
-use crate::headers::{Headers};
-use crate::parser::{body, multipart, url_encoded};
-use crate::parser::body::Limits;
-use crate::parser::body::reader::BodyReader;
-use crate::parser::multipart::{FormPart, MultipartFormDataError};
-use crate::parser::multipart::reader::FormDataReader;
-use crate::parser::url_encoded::{FormFields, UrlEncodedFormDataError};
-use crate::parser::url_encoded::reader::UrlEncodedReader;
-use crate::request::form::{FormFiles, FormData, FormFile};
-use crate::server::Context;
 
 fn map_first_vec_value(map: &HashMap<String, Vec<String>>, key: &str) -> Option<String> {
     if let Some(values) = map.get(key) {
@@ -27,9 +27,9 @@ fn map_first_vec_value(map: &HashMap<String, Vec<String>>, key: &str) -> Option<
 }
 
 pub mod form {
+    use crate::request::map_first_vec_value;
     use std::collections::HashMap;
     use tempfile::NamedTempFile;
-    use crate::request::map_first_vec_value;
 
     pub struct FormFile {
         pub filename: String,
@@ -95,9 +95,15 @@ pub struct Request {
 }
 
 impl Request {
-    pub fn new(context: Arc<Context>, stream: TcpStream, request_method: String, raw_path: String,
-               headers: HashMap<String, Vec<String>>, body_read: Arc<AtomicBool>,
-               body_parsed: Arc<AtomicBool>) -> Self {
+    pub fn new(
+        context: Arc<Context>,
+        stream: TcpStream,
+        request_method: String,
+        raw_path: String,
+        headers: HashMap<String, Vec<String>>,
+        body_read: Arc<AtomicBool>,
+        body_parsed: Arc<AtomicBool>,
+    ) -> Self {
         let form_data = FormData::new();
         let form_files = FormFiles::new();
 
@@ -133,7 +139,10 @@ impl Request {
         let content_length = headers::content_length(&self.headers);
         let request_method = self.method.to_uppercase();
 
-        if matches!(request_method.as_str(), "GET" | "HEAD" | "OPTIONS" | "DELETE" | "TRACE" | "CONNECT") {
+        if matches!(
+            request_method.as_str(),
+            "GET" | "HEAD" | "OPTIONS" | "DELETE" | "TRACE" | "CONNECT"
+        ) {
             // Same connections can be used fot these requests since there is no request body
             if !content_length.is_some() {
                 // Content length is missing. Assuming there is no request body
@@ -141,7 +150,6 @@ impl Request {
             }
         }
     }
-
 
     pub fn set_partial_body_bytes(&mut self, bytes: Vec<u8>) {
         self.partial_body = Some(bytes);
@@ -151,7 +159,9 @@ impl Request {
         let connection_type = headers::connection_type(&self.headers);
 
         if let Some(connection_type) = &connection_type {
-            if connection_type.to_lowercase() == "keep-alive" && self.body_read.load(Ordering::Relaxed) {
+            if connection_type.to_lowercase() == "keep-alive"
+                && self.body_read.load(Ordering::Relaxed)
+            {
                 return false;
             }
         }
@@ -188,14 +198,14 @@ impl Request {
             partial.clear();
         }
 
-        let reader = BodyReader::new(cloned_stream.unwrap(), content_length.unwrap(),
-                                     partial_bytes.len(), limits);
-
-        let parse_result = body::parse(
-            partial_bytes,
-            &self.headers,
-            reader,
+        let reader = BodyReader::new(
+            cloned_stream.unwrap(),
+            content_length.unwrap(),
+            partial_bytes.len(),
+            limits,
         );
+
+        let parse_result = body::parse(partial_bytes, &self.headers, reader);
 
         self.body_read.store(true, Ordering::Relaxed);
 
@@ -259,11 +269,8 @@ impl Request {
                 form_part_limits: HashMap::new(),
             };
 
-            let result = self.multipart_form_data(
-                content_type_value.to_string(),
-                content_length,
-                limits,
-            );
+            let result =
+                self.multipart_form_data(content_type_value.to_string(), content_length, limits);
 
             // Body read but yet don't know result.
             self.body_read.store(true, Ordering::Relaxed);
@@ -284,7 +291,7 @@ impl Request {
             }
         } else if content_type_value.starts_with("application/x-www-form-urlencoded") {
             let limits = url_encoded::Limits {
-                max_body_size: 2 * 1024 * 1024 // 2 MiB
+                max_body_size: 2 * 1024 * 1024, // 2 MiB
             };
 
             if !content_length.is_some() {
@@ -293,10 +300,7 @@ impl Request {
                 return;
             }
 
-            let result = self.parse_url_encoded(
-                content_length.unwrap(),
-                limits,
-            );
+            let result = self.parse_url_encoded(content_length.unwrap(), limits);
             self.body_read.store(true, Ordering::Relaxed);
 
             match result {
@@ -312,11 +316,17 @@ impl Request {
         }
     }
 
-    pub fn multipart_form_data(&mut self, content_type: String, content_length: Option<usize>,
-                               limits: multipart::Limits) -> Result<Vec<FormPart>, MultipartFormDataError> {
+    pub fn multipart_form_data(
+        &mut self,
+        content_type: String,
+        content_length: Option<usize>,
+        limits: multipart::Limits,
+    ) -> Result<Vec<FormPart>, MultipartFormDataError> {
         let boundary = multipart::extract_boundary(&content_type);
         if !boundary.is_some() {
-            return Err(MultipartFormDataError::Others("Boundary is missing from Content-Type"));
+            return Err(MultipartFormDataError::Others(
+                "Boundary is missing from Content-Type",
+            ));
         }
 
         // Copy partial body which was read unintentionally
@@ -338,21 +348,17 @@ impl Request {
                     partial_body.len(),
                 );
 
-                multipart::parse(
-                    partial_body,
-                    &self.headers,
-                    reader,
-                    limits,
-                )
+                multipart::parse(partial_body, &self.headers, reader, limits)
             }
-            Err(_) => {
-                Err(MultipartFormDataError::Others("Failed to copy stream"))
-            }
+            Err(_) => Err(MultipartFormDataError::Others("Failed to copy stream")),
         };
     }
 
-    pub fn parse_url_encoded(&mut self, content_length: usize, limits: url_encoded::Limits)
-                             -> Result<FormFields, UrlEncodedFormDataError> {
+    pub fn parse_url_encoded(
+        &mut self,
+        content_length: usize,
+        limits: url_encoded::Limits,
+    ) -> Result<FormFields, UrlEncodedFormDataError> {
         let mut partial_bytes = Vec::new();
 
         if let Some(partial_body) = self.partial_body.as_mut() {
@@ -361,16 +367,15 @@ impl Request {
         }
 
         let cloned_stream = self.stream.try_clone().expect("Failed to clone stream");
-        let mut reader = UrlEncodedReader::new(
-            cloned_stream,
-            content_length,
-            partial_bytes.len(),
-        );
+        let mut reader = UrlEncodedReader::new(cloned_stream, content_length, partial_bytes.len());
 
         return url_encoded::parse(partial_bytes, &self.headers, &mut reader, limits);
     }
 
-    pub fn multipart_form_data_and_files(&self, form_parts: Vec<FormPart>) -> (FormData, FormFiles) {
+    pub fn multipart_form_data_and_files(
+        &self,
+        form_parts: Vec<FormPart>,
+    ) -> (FormData, FormFiles) {
         let mut form_data = FormData::new();
         let mut form_files = FormFiles::new();
 
@@ -378,7 +383,6 @@ impl Request {
             if !form_part.name.is_some() {
                 continue;
             }
-
 
             if form_part.value.is_some() {
                 // It is field value
@@ -404,8 +408,11 @@ impl Request {
                 let values = form_files.get_mut(&name).unwrap();
                 let temp_file = form_part.temp_file;
 
-                let filename = form_part.filename.expect("Error in parsing file body. At least expected filename.");
-                let temp_file = temp_file.expect("Error in parsing file body. At least expected one temp file.");
+                let filename = form_part
+                    .filename
+                    .expect("Error in parsing file body. At least expected filename.");
+                let temp_file = temp_file
+                    .expect("Error in parsing file body. At least expected one temp file.");
                 let form_file = FormFile {
                     filename,
                     temp_file,
@@ -438,5 +445,3 @@ impl Clone for Request {
         };
     }
 }
-
-

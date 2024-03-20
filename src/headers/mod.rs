@@ -1,11 +1,10 @@
+use crate::parser::parse_url_encoded;
+use regex::Regex;
 use std::collections::HashMap;
 use std::io::Read;
 use std::net::TcpStream;
-use regex::Regex;
-use crate::parser::parse_url_encoded;
 
 pub type Headers = HashMap<String, Vec<String>>;
-
 
 #[derive(Debug)]
 pub enum RequestHeaderError {
@@ -15,11 +14,14 @@ pub enum RequestHeaderError {
     ClientDisconnected,
 }
 
-
 /// It will try to read headers from the tcp stream.
 /// Returns type `RequestHeaderError` if failed to extract headers.
-pub fn extract_headers(stream: &mut TcpStream, start_header: &mut String,
-                       partial_body_bytes: &mut Vec<u8>, max_size: usize) -> Result<Headers, RequestHeaderError> {
+pub fn extract_headers(
+    stream: &mut TcpStream,
+    start_header: &mut String,
+    partial_body_bytes: &mut Vec<u8>,
+    max_size: usize,
+) -> Result<Headers, RequestHeaderError> {
     let mut header_bytes = Vec::new();
 
     let mut read_all_headers = false;
@@ -60,8 +62,8 @@ pub fn extract_headers(stream: &mut TcpStream, start_header: &mut String,
         }
     }
 
-    let raw_request_headers = String::from_utf8(header_bytes)
-        .expect("Unsupported header encoding.");
+    let raw_request_headers =
+        String::from_utf8(header_bytes).expect("Unsupported header encoding.");
     let header_lines: Vec<&str> = raw_request_headers.split("\r\n").collect();
 
     let mut headers: Headers = HashMap::new();
@@ -81,11 +83,10 @@ pub fn extract_headers(stream: &mut TcpStream, start_header: &mut String,
                 headers.insert(key, header_value);
             }
         }
-    };
+    }
 
     return Ok(headers);
 }
-
 
 /// Returns content length from the `Header` if available
 pub fn content_length(headers: &Headers) -> Option<usize> {
@@ -99,7 +100,6 @@ pub fn content_length(headers: &Headers) -> Option<usize> {
 
     return None;
 }
-
 
 /// Returns the value of `Connection` header if available
 pub fn connection_type(headers: &Headers) -> Option<String> {
@@ -126,7 +126,6 @@ pub fn host(headers: &Headers) -> Option<String> {
     return None;
 }
 
-
 /// Returns `Content-Type` value from the header if available
 pub fn extract_content_type(headers: &Headers) -> Option<String> {
     if let Some(values) = headers.get("Content-Type") {
@@ -140,9 +139,10 @@ pub fn extract_content_type(headers: &Headers) -> Option<String> {
 /// Returns size of header end position if header ends with "\r\n\r\n"
 pub fn contains_full_headers(buffer: &[u8]) -> Option<usize> {
     let end_header_bytes = b"\r\n\r\n";
-    buffer.windows(end_header_bytes.len()).position(|window| window == end_header_bytes)
+    buffer
+        .windows(end_header_bytes.len())
+        .position(|window| window == end_header_bytes)
 }
-
 
 /// Returns the request method and raw path from the header line if matched
 /// ```markdown
@@ -175,7 +175,6 @@ pub fn parse_header(line: &str) -> Option<(String, String)> {
     }
     return None;
 }
-
 
 /// Returns map of url encoded key values
 /// Example: `/search?name=John&age=22`

@@ -1,9 +1,9 @@
-use std::collections::HashMap;
-use std::io::{BufWriter, Write};
-use std::net::{Shutdown};
 use crate::headers::Headers;
 use crate::request::Request;
 use crate::status::{Status, StatusCode, StatusMethods};
+use std::collections::HashMap;
+use std::io::{BufWriter, Write};
+use std::net::Shutdown;
 
 pub struct Response {
     pub request: Request,
@@ -92,13 +92,16 @@ impl Response {
                     access_from = addr.to_string();
                 }
 
-                Err(_) => {
-                    access_from = "UnKnown".to_string()
-                }
+                Err(_) => access_from = "UnKnown".to_string(),
             }
 
-            println!("{} - \"{} {} {}\"", access_from, request.method, request.pathname,
-                     self.status.unwrap());
+            println!(
+                "{} - \"{} {} {}\"",
+                access_from,
+                request.method,
+                request.pathname,
+                self.status.unwrap()
+            );
             self.write_http();
         }
     }
@@ -107,8 +110,13 @@ impl Response {
         let should_close = self.request.should_close_connection();
 
         let headers = self.headers.as_mut().expect("Response headers missing.");
-        let content_length = format!("{}", self.fixed_content.as_ref()
-            .expect("Fixed content is missing.").len());
+        let content_length = format!(
+            "{}",
+            self.fixed_content
+                .as_ref()
+                .expect("Fixed content is missing.")
+                .len()
+        );
         headers.insert("Content-Length".to_string(), vec![content_length]);
 
         if !should_close {
@@ -163,7 +171,11 @@ impl Response {
         }
 
         // Header start
-        let mut raw_headers = format!("HTTP/1.1 {} {}\r\n", self.status.unwrap(), status_text.unwrap());
+        let mut raw_headers = format!(
+            "HTTP/1.1 {} {}\r\n",
+            self.status.unwrap(),
+            status_text.unwrap()
+        );
 
         if let Some(headers) = &self.headers {
             for header_name in headers.keys() {

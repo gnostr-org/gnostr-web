@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
 pub mod body {
-    use std::io::{Seek, SeekFrom, Write};
-    use tempfile::NamedTempFile;
     use crate::headers;
     use crate::headers::Headers;
     use crate::parser::body::reader::StreamReader;
+    use std::io::{Seek, SeekFrom, Write};
+    use tempfile::NamedTempFile;
 
     pub struct Limits {
         pub max_body_size: usize,
@@ -20,9 +20,9 @@ pub mod body {
     }
 
     pub mod reader {
+        use crate::parser::body::{BodyReadError, Limits};
         use std::io::Read;
         use std::net::TcpStream;
-        use crate::parser::body::{BodyReadError, Limits};
 
         pub trait StreamReader {
             fn get_chunk(&mut self) -> Result<Vec<u8>, BodyReadError>;
@@ -37,7 +37,12 @@ pub mod body {
         }
 
         impl BodyReader {
-            pub fn new(stream: TcpStream, content_length: usize, bytes_read: usize, limits: Limits) -> Self {
+            pub fn new(
+                stream: TcpStream,
+                content_length: usize,
+                bytes_read: usize,
+                limits: Limits,
+            ) -> Self {
                 return Self {
                     stream,
                     content_length,
@@ -61,7 +66,7 @@ pub mod body {
                 let read_result = self.stream.read(&mut buffer);
                 if !read_result.is_ok() {
                     return Err(BodyReadError::Others(
-                        "Unable to read stream. May be client disconnected."
+                        "Unable to read stream. May be client disconnected.",
                     ));
                 }
 
@@ -84,7 +89,7 @@ pub mod body {
                 let read_result = self.stream.read_exact(&mut buffer);
                 if !read_result.is_ok() {
                     return Err(BodyReadError::Others(
-                        "Unable to read stream. May be client disconnected."
+                        "Unable to read stream. May be client disconnected.",
                     ));
                 }
                 self.bytes_read += size;
@@ -93,8 +98,11 @@ pub mod body {
         }
     }
 
-    pub fn parse<T: StreamReader>(partial_bytes: Vec<u8>, headers: &Headers, mut reader: T)
-                                  -> Result<NamedTempFile, BodyReadError> {
+    pub fn parse<T: StreamReader>(
+        partial_bytes: Vec<u8>,
+        headers: &Headers,
+        mut reader: T,
+    ) -> Result<NamedTempFile, BodyReadError> {
         let mut body_buffer = Vec::from(partial_bytes);
         let mut body_read = body_buffer.len();
 
@@ -175,21 +183,17 @@ pub fn parse_url_encoded(text: &str) -> HashMap<String, Vec<String>> {
 
 pub fn url_decode(value: &str) -> String {
     return match urlencoding::decode(value) {
-        Ok(decoded_value) => {
-            decoded_value.to_string()
-        }
-        Err(_) => {
-            value.to_string()
-        }
+        Ok(decoded_value) => decoded_value.to_string(),
+        Err(_) => value.to_string(),
     };
 }
 
 pub mod url_encoded {
-    use std::collections::HashMap;
     use crate::headers;
-    use crate::headers::{Headers};
+    use crate::headers::Headers;
     use crate::parser::parse_url_encoded;
     use crate::parser::url_encoded::reader::StreamReader;
+    use std::collections::HashMap;
 
     #[derive(Debug)]
     pub enum UrlEncodedFormDataError {
@@ -208,9 +212,9 @@ pub mod url_encoded {
     }
 
     pub mod reader {
+        use crate::parser::url_encoded::UrlEncodedFormDataError;
         use std::io::Read;
         use std::net::TcpStream;
-        use crate::parser::url_encoded::UrlEncodedFormDataError;
 
         /// The reusable trait for fetching "x-www-form-urlencoded" form data
         pub trait StreamReader {
@@ -264,14 +268,16 @@ pub mod url_encoded {
 
                 if !read_result.is_ok() {
                     return Err(UrlEncodedFormDataError::Others(
-                        "Unable to read stream. May be client disconnected."
+                        "Unable to read stream. May be client disconnected.",
                     ));
                 }
 
                 let read_size = read_result.unwrap();
 
                 if read_size == 0 {
-                    return Err(UrlEncodedFormDataError::Others("Bytes read size is 0. Probably client disconnected."));
+                    return Err(UrlEncodedFormDataError::Others(
+                        "Bytes read size is 0. Probably client disconnected.",
+                    ));
                 }
 
                 let chunk = &buffer[0..read_size];
@@ -288,7 +294,7 @@ pub mod url_encoded {
                 let result = self.stream.read_exact(&mut buffer);
                 if !result.is_ok() {
                     return Err(UrlEncodedFormDataError::Others(
-                        "Unable to read stream. May be client disconnected."
+                        "Unable to read stream. May be client disconnected.",
                     ));
                 }
 
@@ -303,20 +309,24 @@ pub mod url_encoded {
 
     pub type FormFields = HashMap<String, Vec<String>>;
 
-    pub fn parse<T: StreamReader>(partial_bytes: Vec<u8>, headers: &Headers, reader: &mut T,
-                                  limits: Limits) -> Result<FormFields, UrlEncodedFormDataError> {
+    pub fn parse<T: StreamReader>(
+        partial_bytes: Vec<u8>,
+        headers: &Headers,
+        reader: &mut T,
+        limits: Limits,
+    ) -> Result<FormFields, UrlEncodedFormDataError> {
         let mut body_buffer = Vec::from(partial_bytes);
         let content_length = headers::content_length(headers);
 
         if let Some(content_length) = content_length {
             if content_length > limits.max_body_size {
                 return Err(UrlEncodedFormDataError::MaxBodySizeExceed(
-                    "Request body size is larger than the limit."
+                    "Request body size is larger than the limit.",
                 ));
             }
         } else {
             return Err(UrlEncodedFormDataError::ContentLengthMissing(
-                "Content-Length header is missing."
+                "Content-Length header is missing.",
             ));
         }
 
@@ -336,7 +346,7 @@ pub mod url_encoded {
                     return Err(error);
                 }
             }
-        };
+        }
 
         let value = String::from_utf8_lossy(&body_buffer).to_string();
         let form_values = parse_url_encoded(value.as_str());
@@ -345,12 +355,12 @@ pub mod url_encoded {
 }
 
 pub mod multipart {
-    use std::collections::HashMap;
-    use std::io::{Seek, SeekFrom, Write};
-    use regex::Regex;
-    use tempfile::NamedTempFile;
     use crate::headers;
     use crate::headers::Headers;
+    use regex::Regex;
+    use std::collections::HashMap;
+    use std::io::{Seek, SeekFrom, Write};
+    use tempfile::NamedTempFile;
 
     #[derive(Debug)]
     pub enum MultipartFormDataError {
@@ -369,7 +379,6 @@ pub mod multipart {
         /// Occurs, if error not fulfilled by above conditions
         Others(&'static str),
     }
-
 
     /// The reusable trait for fetching multipart bytes
     pub trait StreamReader {
@@ -391,9 +400,9 @@ pub mod multipart {
     }
 
     pub mod reader {
+        use crate::parser::multipart::{MultipartFormDataError, StreamReader};
         use std::io::Read;
         use std::net::TcpStream;
-        use crate::parser::multipart::{MultipartFormDataError, StreamReader};
 
         pub struct FormDataReader {
             pub stream: TcpStream,
@@ -407,7 +416,12 @@ pub mod multipart {
         }
 
         impl FormDataReader {
-            pub fn new(stream: TcpStream, boundary: String, content_length: Option<usize>, body_read: usize) -> Self {
+            pub fn new(
+                stream: TcpStream,
+                boundary: String,
+                content_length: Option<usize>,
+                body_read: usize,
+            ) -> Self {
                 let boundary_end = format!("--{}\r\n", boundary);
                 let boundary_end_bytes = boundary_end.as_bytes().to_vec();
                 let body_buffer = Vec::with_capacity(boundary_end_bytes.len());
@@ -451,7 +465,9 @@ pub mod multipart {
                     // We can copy whole last bytes equivalent of boundary end bytes
                     if new_chunk.len() > self.boundary_end_bytes.len() {
                         self.body_buffer.clear();
-                        let last_sice = &new_chunk[(self.boundary_end_bytes.len() - self.boundary_end_bytes.len())..self.boundary_end_bytes.len()];
+                        let last_sice = &new_chunk[(self.boundary_end_bytes.len()
+                            - self.boundary_end_bytes.len())
+                            ..self.boundary_end_bytes.len()];
                         self.body_buffer.extend(last_sice);
                     } else {
                         // If the chunk is smaller than the boundary length
@@ -478,12 +494,16 @@ pub mod multipart {
                 let result = self.stream.read(&mut buffer);
 
                 if !result.is_ok() {
-                    return Err(MultipartFormDataError::Others("Unable to read stream. May be client disconnected."));
+                    return Err(MultipartFormDataError::Others(
+                        "Unable to read stream. May be client disconnected.",
+                    ));
                 }
 
                 let read_size = result.unwrap();
                 if read_size == 0 {
-                    return Err(MultipartFormDataError::Others("Bytes read size is 0. Probably client disconnected."));
+                    return Err(MultipartFormDataError::Others(
+                        "Bytes read size is 0. Probably client disconnected.",
+                    ));
                 }
 
                 let chunk_slice = &buffer[0..read_size];
@@ -501,7 +521,9 @@ pub mod multipart {
                 let mut buffer: Vec<u8> = vec![0u8; size];
                 let result = self.stream.read_exact(&mut buffer);
                 if !result.is_ok() {
-                    return Err(MultipartFormDataError::Others("Unable to read stream. May be client disconnected."));
+                    return Err(MultipartFormDataError::Others(
+                        "Unable to read stream. May be client disconnected.",
+                    ));
                 }
 
                 self.update_read_status(&buffer);
@@ -584,29 +606,39 @@ pub mod multipart {
     /// male
     /// ----------------------------648887867674240986891965--
     /// ```
-    pub fn parse<T: StreamReader>(partial_bytes: Vec<u8>, headers: &Headers, reader: T, limits: Limits)
-                                  -> Result<Vec<FormPart>, MultipartFormDataError> {
+    pub fn parse<T: StreamReader>(
+        partial_bytes: Vec<u8>,
+        headers: &Headers,
+        reader: T,
+        limits: Limits,
+    ) -> Result<Vec<FormPart>, MultipartFormDataError> {
         let content_type_bytes = headers.get("Content-Type");
 
         let content_type: String;
         if let Some(content_type_bytes) = content_type_bytes {
             content_type = content_type_bytes.get(0).unwrap().to_owned();
         } else {
-            return Err(MultipartFormDataError::InvalidMultiPart("Content-Type header missing."));
+            return Err(MultipartFormDataError::InvalidMultiPart(
+                "Content-Type header missing.",
+            ));
         };
 
         let multipart_boundary: String;
         if let Some(boundary) = extract_boundary(&content_type) {
             multipart_boundary = boundary;
         } else {
-            return Err(MultipartFormDataError::InvalidMultiPart("Unable to extract multipart boundary."));
+            return Err(MultipartFormDataError::InvalidMultiPart(
+                "Unable to extract multipart boundary.",
+            ));
         }
 
         // Check if the client body is larger than the limit
         if let Some(max_body_size) = limits.max_body_size {
             if let Some(content_length) = headers::content_length(&headers) {
                 if content_length > max_body_size {
-                    return Err(MultipartFormDataError::MaxBodySizeExceed("Maximum specified body size exceed."));
+                    return Err(MultipartFormDataError::MaxBodySizeExceed(
+                        "Maximum specified body size exceed.",
+                    ));
                 }
             }
         }
@@ -615,8 +647,12 @@ pub mod multipart {
         return parse_body_parts(reader, body_buffer, &multipart_boundary, limits);
     }
 
-    pub fn parse_body_parts<T: StreamReader>(mut reader: T, mut body_buffer: Vec<u8>, boundary: &String,
-                                             limits: Limits) -> Result<Vec<FormPart>, MultipartFormDataError> {
+    pub fn parse_body_parts<T: StreamReader>(
+        mut reader: T,
+        mut body_buffer: Vec<u8>,
+        boundary: &String,
+        limits: Limits,
+    ) -> Result<Vec<FormPart>, MultipartFormDataError> {
         let mut form_parts = Vec::new();
 
         // Remove starting boundary first. It will make parsing easy by matching \r\n--{boundary}
@@ -642,7 +678,9 @@ pub mod multipart {
         };
 
         if !body_buffer_starts_with_boundary(&body_buffer, start_boundary_bytes) {
-            return Err(MultipartFormDataError::InvalidMultiPart("Body does not start with boundary"));
+            return Err(MultipartFormDataError::InvalidMultiPart(
+                "Body does not start with boundary",
+            ));
         }
 
         // Remove boundary header start
@@ -651,11 +689,7 @@ pub mod multipart {
         // Now, we can start looping the form part contents.
         loop {
             // Extract header from form part
-            let header_result = extract_form_part_header(
-                &mut reader,
-                &mut body_buffer,
-                &limits,
-            );
+            let header_result = extract_form_part_header(&mut reader, &mut body_buffer, &limits);
             if !header_result.is_ok() {
                 return Err(header_result.unwrap_err());
             }
@@ -705,7 +739,10 @@ pub mod multipart {
         }
     }
 
-    pub fn body_buffer_starts_with_boundary(body_buffer: &Vec<u8>, start_boundary_bytes: &[u8]) -> bool {
+    pub fn body_buffer_starts_with_boundary(
+        body_buffer: &Vec<u8>,
+        start_boundary_bytes: &[u8],
+    ) -> bool {
         // Check if the body buffer starts with start boundary or not. If not we will discard and don't process further.
         let extracted_boundary_slice = &body_buffer[0..start_boundary_bytes.len()];
         return extracted_boundary_slice == start_boundary_bytes;
@@ -725,8 +762,11 @@ pub mod multipart {
     ///
     /// ... continues
     /// ```
-    pub fn extract_form_part_header<T: StreamReader>(reader: &mut T, body_buffer: &mut Vec<u8>, limits: &Limits)
-                                                     -> Result<Vec<u8>, MultipartFormDataError> {
+    pub fn extract_form_part_header<T: StreamReader>(
+        reader: &mut T,
+        body_buffer: &mut Vec<u8>,
+        limits: &Limits,
+    ) -> Result<Vec<u8>, MultipartFormDataError> {
         // There can be one CRLF line break as well as two. Need to handle both cases.
         let header_end_bytes = b"\r\n\r\n";
         let mut form_part_header_buffer = Vec::new();
@@ -734,7 +774,8 @@ pub mod multipart {
         let max_header_size = limits.max_header_size;
 
         loop {
-            let scan_result = body_buffer.windows(header_end_bytes.len())
+            let scan_result = body_buffer
+                .windows(header_end_bytes.len())
                 .position(|window| window == header_end_bytes);
 
             if let Some(found_index) = scan_result {
@@ -742,8 +783,12 @@ pub mod multipart {
                 form_part_header_buffer.extend(&body_buffer[0..found_index]);
 
                 // If MAX_HEADER_SIZE exceeds, return error.
-                if max_header_size.is_some() && (form_part_header_buffer.len() >= max_header_size.unwrap()) {
-                    return Err(MultipartFormDataError::HeaderSizeExceed("Header size exceed max specified size"));
+                if max_header_size.is_some()
+                    && (form_part_header_buffer.len() >= max_header_size.unwrap())
+                {
+                    return Err(MultipartFormDataError::HeaderSizeExceed(
+                        "Header size exceed max specified size",
+                    ));
                 }
 
                 // Remove the found header including trailing header end bytes
@@ -754,7 +799,8 @@ pub mod multipart {
                 // Last 4 bytes not copied to header buffer because it's half part may be available in the buffer next time
                 // after new read. So we can't check if it ends or not.
                 // If there is no enough data to copy to header buffer we ignore and fill more data to body buffer.
-                let to_copy_to_header_buffer = body_buffer.len() as i32 - header_end_bytes.len() as i32;
+                let to_copy_to_header_buffer =
+                    body_buffer.len() as i32 - header_end_bytes.len() as i32;
                 if to_copy_to_header_buffer > 0 {
                     // Append new data to header buffer
                     form_part_header_buffer.extend(header_end_bytes);
@@ -763,8 +809,12 @@ pub mod multipart {
                 }
 
                 // If MAX_HEADER_SIZE exceeds, return error.
-                if max_header_size.is_some() && (form_part_header_buffer.len() >= max_header_size.unwrap()) {
-                    return Err(MultipartFormDataError::HeaderSizeExceed("Header size exceed max specified size"));
+                if max_header_size.is_some()
+                    && (form_part_header_buffer.len() >= max_header_size.unwrap())
+                {
+                    return Err(MultipartFormDataError::HeaderSizeExceed(
+                        "Header size exceed max specified size",
+                    ));
                 } else {
                     let request_new_chunk = reader.get_chunk();
 
@@ -818,7 +868,6 @@ pub mod multipart {
         }
     }
 
-
     /// Expects value of Content-Disposition value.
     ///
     /// Example:
@@ -853,9 +902,13 @@ pub mod multipart {
         form_part.content_type = Some(value.to_string());
     }
 
-    pub fn extract_form_part_body<T: StreamReader>(reader: &mut T, body_buffer: &mut Vec<u8>, boundary: &String,
-                                                   form_part: &mut FormPart, limits: &Limits) ->
-                                                   Result<FormPartResult, MultipartFormDataError> {
+    pub fn extract_form_part_body<T: StreamReader>(
+        reader: &mut T,
+        body_buffer: &mut Vec<u8>,
+        boundary: &String,
+        form_part: &mut FormPart,
+        limits: &Limits,
+    ) -> Result<FormPartResult, MultipartFormDataError> {
         let field_name = &form_part.name;
 
         let mut form_part_limit: Option<&FormPartLimit> = None;
@@ -866,7 +919,13 @@ pub mod multipart {
 
         let is_file = form_part.filename.is_some();
         if is_file {
-            return extract_form_file_body(reader, body_buffer, boundary, form_part, form_part_limit);
+            return extract_form_file_body(
+                reader,
+                body_buffer,
+                boundary,
+                form_part,
+                form_part_limit,
+            );
         }
 
         let field_value_limit;
@@ -899,9 +958,13 @@ pub mod multipart {
     ///
     /// fs::copy(path, owned).expect("Error copying");
     /// ```
-    pub fn extract_form_file_body<T: StreamReader>(reader: &mut T, body_buffer: &mut Vec<u8>, boundary: &String,
-                                                   form_part: &mut FormPart, form_part_limit: Option<&FormPartLimit>)
-                                                   -> Result<FormPartResult, MultipartFormDataError> {
+    pub fn extract_form_file_body<T: StreamReader>(
+        reader: &mut T,
+        body_buffer: &mut Vec<u8>,
+        boundary: &String,
+        form_part: &mut FormPart,
+        form_part_limit: Option<&FormPartLimit>,
+    ) -> Result<FormPartResult, MultipartFormDataError> {
         // Create new tmp directory
         let temp_file_create = NamedTempFile::new();
         let mut temp_file;
@@ -912,7 +975,9 @@ pub mod multipart {
             }
 
             Err(_) => {
-                return Err(MultipartFormDataError::Others("Error creating temporary file"));
+                return Err(MultipartFormDataError::Others(
+                    "Error creating temporary file",
+                ));
             }
         }
 
@@ -924,7 +989,8 @@ pub mod multipart {
         let mut bytes_written: usize = 0;
 
         loop {
-            let search_file_end = body_buffer.windows(file_end_matching_bytes.len())
+            let search_file_end = body_buffer
+                .windows(file_end_matching_bytes.len())
                 .position(|window| window == file_end_matching_bytes);
 
             // Position where file_end_matcher started matching
@@ -946,19 +1012,24 @@ pub mod multipart {
 
                     let write_result = temp_file.write_all(bytes_to_copy);
                     if !write_result.is_ok() {
-                        return Err(MultipartFormDataError::Others("Error writing to temporary file"));
+                        return Err(MultipartFormDataError::Others(
+                            "Error writing to temporary file",
+                        ));
                     }
 
                     // Remove copied data from body buffer including boundary by creating new array.
-                    *body_buffer = Vec::from(&body_buffer[body_end_index + file_end_matching_bytes.len()..]);
+                    *body_buffer =
+                        Vec::from(&body_buffer[body_end_index + file_end_matching_bytes.len()..]);
                 }
 
                 // Check if the file size is more than the limit set.
-                if form_part_limit.is_some() && (bytes_written > form_part_limit.unwrap().max_size.unwrap()) {
+                if form_part_limit.is_some()
+                    && (bytes_written > form_part_limit.unwrap().max_size.unwrap())
+                {
                     return Err(MultipartFormDataError::MaxFieldSizeExceed(
                         form_part.name.clone().unwrap().to_string(),
-                        "The file is bigger than the maximum allowed size")
-                    );
+                        "The file is bigger than the maximum allowed size",
+                    ));
                 }
 
                 // Check if it is the last form content or still there are others.
@@ -992,7 +1063,9 @@ pub mod multipart {
                     // All form part has been parsed
                     body_buffer.clear();
                     if !temp_file.seek(SeekFrom::Start(0)).is_ok() {
-                        return Err(MultipartFormDataError::Others("Error to seek start 0 temporary file."));
+                        return Err(MultipartFormDataError::Others(
+                            "Error to seek start 0 temporary file.",
+                        ));
                     }
 
                     form_part.temp_file = Some(temp_file);
@@ -1006,7 +1079,9 @@ pub mod multipart {
                     *body_buffer = Vec::from(&body_buffer[2..]);
 
                     if !temp_file.seek(SeekFrom::Start(0)).is_ok() {
-                        return Err(MultipartFormDataError::Others("Error seek to start 0 temporary file."));
+                        return Err(MultipartFormDataError::Others(
+                            "Error seek to start 0 temporary file.",
+                        ));
                     }
 
                     form_part.temp_file = Some(temp_file);
@@ -1014,7 +1089,9 @@ pub mod multipart {
                 }
 
                 // None of the condition is satisfied. Problem with the request body.
-                return Err(MultipartFormDataError::ParsingError("Form content did not end with \r\n"));
+                return Err(MultipartFormDataError::ParsingError(
+                    "Form content did not end with \r\n",
+                ));
             } else {
                 // Body end still not found. Add new chunk to body buffer
                 // However we still write the data from the buffer except last bytes equal to the boundary match header.
@@ -1027,14 +1104,17 @@ pub mod multipart {
                 // Don't move data from buffer to file if the length of the buffer is smaller than the
                 // ending boundary + \r\n bytes.
 
-                let to_copy_size = body_buffer.len() as i32 - (file_end_matching_bytes.len() as i32 + 2);
+                let to_copy_size =
+                    body_buffer.len() as i32 - (file_end_matching_bytes.len() as i32 + 2);
 
                 if to_copy_size > 0 {
                     let to_copy = &body_buffer[0..to_copy_size as usize];
 
                     let write_result = temp_file.write_all(to_copy);
                     if !write_result.is_ok() {
-                        return Err(MultipartFormDataError::Others("Error writing to temporary file"));
+                        return Err(MultipartFormDataError::Others(
+                            "Error writing to temporary file",
+                        ));
                     }
 
                     // Remove copied bytes from the body buffer
@@ -1042,10 +1122,13 @@ pub mod multipart {
                     bytes_written += to_copy_size as usize;
                 }
 
-                if form_part_limit.is_some() && (bytes_written > form_part_limit.unwrap().max_size.unwrap()) {
+                if form_part_limit.is_some()
+                    && (bytes_written > form_part_limit.unwrap().max_size.unwrap())
+                {
                     return Err(MultipartFormDataError::MaxFieldSizeExceed(
                         form_part.name.clone().unwrap().to_string(),
-                        "The file is bigger than the maximum allowed size"));
+                        "The file is bigger than the maximum allowed size",
+                    ));
                 }
 
                 let request_new_chunk = reader.get_chunk();
@@ -1060,12 +1143,16 @@ pub mod multipart {
                     }
                 }
             };
-        };
+        }
     }
 
-    pub fn extract_form_value<T: StreamReader>(reader: &mut T, body_buffer: &mut Vec<u8>, boundary: &String,
-                                               form_part: &mut FormPart, form_part_limit: Option<&FormPartLimit>)
-                                               -> Result<FormPartResult, MultipartFormDataError> {
+    pub fn extract_form_value<T: StreamReader>(
+        reader: &mut T,
+        body_buffer: &mut Vec<u8>,
+        boundary: &String,
+        form_part: &mut FormPart,
+        form_part_limit: Option<&FormPartLimit>,
+    ) -> Result<FormPartResult, MultipartFormDataError> {
         let value_end_matcher = format!("\r\n--{}", boundary);
         let value_end_matching_bytes = value_end_matcher.as_bytes();
 
@@ -1078,7 +1165,8 @@ pub mod multipart {
         }
 
         loop {
-            let end_index = body_buffer.windows(value_end_matching_bytes.len())
+            let end_index = body_buffer
+                .windows(value_end_matching_bytes.len())
                 .position(|window| window == value_end_matching_bytes);
 
             if let Some(end_index) = end_index {
@@ -1095,7 +1183,8 @@ pub mod multipart {
                     value_buffer.extend(to_copy_bytes);
 
                     // Remove partial value end boundary from body buffer
-                    *body_buffer = Vec::from(&body_buffer[end_index + value_end_matching_bytes.len()..]);
+                    *body_buffer =
+                        Vec::from(&body_buffer[end_index + value_end_matching_bytes.len()..]);
                 }
 
                 // Check if the value bytes written is larger than the limit specified
@@ -1150,7 +1239,9 @@ pub mod multipart {
                 }
 
                 // None of the condition is satisfied. Problem with the request body.
-                return Err(MultipartFormDataError::ParsingError("Form content did not end with \r\n"));
+                return Err(MultipartFormDataError::ParsingError(
+                    "Form content did not end with \r\n",
+                ));
             } else {
                 // Value end not found
 
@@ -1158,7 +1249,8 @@ pub mod multipart {
                 // We left last some bytes equal to value_end_matching_bytes because we need to compare again.
                 // Here 2 is the size of length of \r\n which can be ignorable from the value.
                 // Some uses single CRLF line break as well as double line breaks.
-                let to_copy_size = body_buffer.len() as i32 - (value_end_matching_bytes.len() as i32 + 2);
+                let to_copy_size =
+                    body_buffer.len() as i32 - (value_end_matching_bytes.len() as i32 + 2);
                 if to_copy_size > 0 {
                     bytes_written += to_copy_size as usize;
 
@@ -1168,11 +1260,13 @@ pub mod multipart {
                     *body_buffer = Vec::from(&body_buffer[to_copy_size as usize..]);
                 }
 
-                if form_part_limit.is_some() && (bytes_written > form_part_limit.unwrap().max_size.unwrap()) {
+                if form_part_limit.is_some()
+                    && (bytes_written > form_part_limit.unwrap().max_size.unwrap())
+                {
                     return Err(MultipartFormDataError::MaxFieldSizeExceed(
                         form_part.name.clone().unwrap().to_string(),
-                        "The form field value size exceeds the limit specified")
-                    );
+                        "The form field value size exceeds the limit specified",
+                    ));
                 }
 
                 let request_new_chunk = reader.get_chunk();
@@ -1192,20 +1286,15 @@ pub mod multipart {
 
 #[cfg(test)]
 mod test {
-    use std::collections::HashMap;
-    use std::io::{Read};
-    use rand::{Rng};
     use crate::headers::Headers;
-    use crate::parser::multipart::{StreamReader};
+    use crate::parser::multipart::StreamReader;
     use crate::parser::multipart::{
-        extract_form_part_body,
-        extract_form_value,
-        FormPart,
-        Limits,
-        MultipartFormDataError,
-        parse,
-        parse_form_part_header,
+        extract_form_part_body, extract_form_value, parse, parse_form_part_header, FormPart,
+        Limits, MultipartFormDataError,
     };
+    use rand::Rng;
+    use std::collections::HashMap;
+    use std::io::Read;
 
     struct ChunkReader {
         body_bytes: Vec<u8>,
@@ -1287,7 +1376,10 @@ mod test {
                 for form_part in form_parts.iter() {
                     println!("Name: {}", form_part.name.as_ref().unwrap());
                     if form_part.value.as_ref().is_some() {
-                        println!("Value: {:?}", String::from_utf8(form_part.value.as_ref().unwrap().to_vec()));
+                        println!(
+                            "Value: {:?}",
+                            String::from_utf8(form_part.value.as_ref().unwrap().to_vec())
+                        );
                     }
                 }
             }
@@ -1306,7 +1398,8 @@ mod test {
         let form_part = parsing_result.unwrap();
         assert_eq!("John Doe", form_part.name.unwrap());
 
-        let header_sample_2 = "Content-Disposition: form-data; name=\"file\"; filename=\"a.txt\"\r\n\
+        let header_sample_2 =
+            "Content-Disposition: form-data; name=\"file\"; filename=\"a.txt\"\r\n\
         Content-Type: text/plain\r\n\r\n";
         let parsing_result = parse_form_part_header(header_sample_2.to_string());
         assert_eq!(true, parsing_result.is_ok());
@@ -1335,8 +1428,13 @@ mod test {
             // let mut body_buffer = Vec::new();
 
             let boundary = "--------------------------163905767229441796406063".to_string();
-            let result = extract_form_part_body(&mut reader, &mut body_buffer,
-                                                &boundary, &mut form_part, &Limits::none());
+            let result = extract_form_part_body(
+                &mut reader,
+                &mut body_buffer,
+                &boundary,
+                &mut form_part,
+                &Limits::none(),
+            );
             match result {
                 Ok(res) => {
                     println!("{:?}", res);
@@ -1348,7 +1446,9 @@ mod test {
                     // std::fs::copy(path, owned).expect("Error copying");
 
                     let mut content = String::new();
-                    temp_file.read_to_string(&mut content).expect("Error reading temporary file");
+                    temp_file
+                        .read_to_string(&mut content)
+                        .expect("Error reading temporary file");
                     assert_eq!(content, "John Doe");
                 }
 
