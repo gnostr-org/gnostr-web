@@ -10,6 +10,7 @@ repository = "https://github.com/tejmagar/rusty-web/"
 
 [dependencies]
 regex = "1.10.3"
+signal-hook = "0.3.17"
 
 tempfile = "3.10.0"
 urlencoding = "2.1.3"
