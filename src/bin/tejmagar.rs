@@ -7,7 +7,7 @@ use std::{thread, time::Duration};
 
 use std::process::Command;
 
-pub fn start() {
+pub fn start() -> String {
     let start_front = if cfg!(target_os = "windows") {
         Command::new("tejmagar-index")
             .args(["/C", ""])
@@ -15,19 +15,16 @@ pub fn start() {
             .expect("failed to execute process")
     } else if cfg!(target_os = "macos") {
         Command::new("tejmagar-index")
-            .arg("-c")
             .arg("")
             .output()
             .expect("failed to execute process")
     } else if cfg!(target_os = "linux") {
         Command::new("tejmagar-index")
-            .arg("-c")
             .arg("")
             .output()
             .expect("failed to execute process")
     } else {
         Command::new("tejmagar-index")
-            .arg("-c")
             .arg("")
             .output()
             .expect("failed to execute process")
@@ -37,7 +34,7 @@ pub fn start() {
         .map_err(|non_utf8| String::from_utf8_lossy(non_utf8.as_bytes()).into_owned())
         .unwrap();
 
-    println!("{}", start_front);
+    return start_front;
 }
 
 pub fn process_daemon() {
@@ -48,38 +45,34 @@ pub fn process_daemon() {
 
     thread::spawn(move || {
         for _sig in signals.forever() {
-            start();
-            println!("52:{:?}", _sig);
+            let res = start();
+            //println!("{}:{:?}:{}",std::process::id(), _sig,res);
+            println!("{}:{}", std::process::id(), res);
         }
     });
 
     thread::sleep(Duration::from_secs(2));
 }
 
-
-
 fn main() {
-    println!("My pid is {}", std::process::id());
+    //println!("{}", std::process::id());
 
+    //let self_cmd = if cfg!(target_os = "windows") {
+    //    Command::new("tejmagar")
+    //        .args(["/C", ""])
+    //        .output()
+    //        .expect("failed to execute process")
+    //} else {
+    //    Command::new("tejmagar")
+    //        .arg("")
+    //        .output()
+    //        .expect("failed to execute process")
+    //};
+    //let self_cmd = String::from_utf8(self_cmd.stdout)
+    //    .map_err(|non_utf8| String::from_utf8_lossy(non_utf8.as_bytes()).into_owned())
+    //    .unwrap();
 
-
-    let self_cmd = if cfg!(target_os = "windows") {
-        Command::new("tejmagar")
-            .args(["/C", ""])
-            .output()
-            .expect("failed to execute process")
-    } else {
-        Command::new("tejmagar")
-            .arg("")
-            .output()
-            .expect("failed to execute process")
-    };
-    let self_cmd = String::from_utf8(self_cmd.stdout)
-        .map_err(|non_utf8| String::from_utf8_lossy(non_utf8.as_bytes()).into_owned())
-        .unwrap();
-
-    println!("{}", self_cmd);
-
+    //println!("{}", self_cmd);
 
     loop {
         process_daemon();
