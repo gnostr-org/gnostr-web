@@ -57,7 +57,7 @@ pub mod server {
     /// }
     /// ```
     pub fn run_server(listen_address: &str, paths: Paths) {
-        println!("Running server in: http://{}", listen_address);
+        println!("http://{}", listen_address);
         let tcp = TcpListener::bind(listen_address);
 
         match tcp {
