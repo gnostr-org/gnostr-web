@@ -1,9 +1,9 @@
 [package]
 name = "gnostr-web"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 authors = ["Tej Magar", "@RandyMcMillan <admin@gnostr.org>"]
-description = "rusty_web demo."
+description = "gnostr-web: a gnostr web/hyper web service."
 license = "MIT"
 documentation = "https://tejmagar.github.io/rusty-web/"
 repository = "https://github.com/tejmagar/rusty-web/"
