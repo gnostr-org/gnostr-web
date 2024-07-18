@@ -1,3 +1,7 @@
+## gnostr-web
+
+<!--
+
 # tejmagar
 
 
@@ -47,6 +51,5 @@ fn main() {
 ## Conclusion
 
 This framework don't force you to follow particular format. You can stream response however you like.
-=======
-# tejmagar
->>>>>>> f8840f1 (cargo init)
+
+-->
