@@ -144,6 +144,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "gnostr-web"
+version = "0.1.0"
+dependencies = [
+ "rand",
+ "regex",
+ "signal-hook",
+ "tempfile",
+ "urlencoding 2.1.3",
+ "web-view",
+]
+
+[[package]]
 name = "gobject-sys"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -429,18 +441,6 @@ dependencies = [
  "thiserror",
  "toml",
  "version-compare",
-]
-
-[[package]]
-name = "tejmagar"
-version = "0.1.0"
-dependencies = [
- "rand",
- "regex",
- "signal-hook",
- "tempfile",
- "urlencoding 2.1.3",
- "web-view",
 ]
 
 [[package]]

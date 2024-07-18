@@ -1,5 +1,5 @@
 [package]
-name = "rust-minimal-web-service-hyper"
+name = "gnostr-hyper-service"
 version = "0.1.0"
 authors = ["Mario Zupan <mario@zupzup.org>"]
 edition = "2018"
