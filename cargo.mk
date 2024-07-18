@@ -25,6 +25,7 @@ cargo-i:cargo-install
 cargo-install:### 	cargo install --path .
 	#@. $(HOME)/.cargo/env
 	@cargo install --path $(PWD)
+	@cargo install --path $(PWD)/hyper
 cargo-br:cargo-build-release### 	cargo-br
 ## 	cargo-br q=true
 cargo-build-release:### 	cargo-build-release
