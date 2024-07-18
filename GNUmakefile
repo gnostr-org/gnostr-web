@@ -176,6 +176,13 @@ more:## 	more help
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/	/'
 	#$(MAKE) -f Makefile help
 
+all: gnostr-web gnostr-hyper-service
+gnostr-web:
+	cargo install --bins --path . & wait 10 &
+gnostr-hyper-service:
+	cargo install --bins --path hyper & wait 10 & \
+		gnostr-web & gnostr-hyper-service
+
 -include Makefile
 
 ##initialize
