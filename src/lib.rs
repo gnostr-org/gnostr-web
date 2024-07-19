@@ -31,7 +31,7 @@ pub mod server {
     use crate::paths::{Paths, SinglePath};
     use crate::request::Request;
     use crate::response::Response;
-    use std::net::{Shutdown, TcpListener, TcpStream};
+    use std::net::{Shutdown, TcpListener, TcpStream, Ipv4Addr, UdpSocket};
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::{Arc, RwLock};
     use std::thread::spawn;
@@ -56,6 +56,41 @@ pub mod server {
     ///    run_server("0.0.0.0:8080", paths);
     /// }
     /// ```
+
+
+    //use std::net::{Ipv4Addr, TcpListener, UdpSocket};
+    use std::str::FromStr;
+    pub type Port = u16;
+
+
+    pub fn is_tcp_port_available(host: &str, p: Port) -> bool {
+        matches!(
+            TcpListener::bind((Ipv4Addr::from_str(host).unwrap(), p)).is_ok(),
+            true
+        ) 
+    }
+
+    pub fn is_udp_port_available(host: &str, p: Port) -> bool {
+        matches!(
+            UdpSocket::bind((Ipv4Addr::from_str(host).unwrap(), p)).is_ok(),
+            true
+        )
+    }
+
+    pub fn check_port(host: &str, port: Port) -> bool {
+        is_tcp_port_available(host, port) && is_udp_port_available(host, port)
+    }
+
+
+    #[cfg(test)]
+    mod tests {
+        use check_port;
+        #[test]
+        fn test_is_free() {
+            assert!(check_port("127.0.0.1", 32200));
+        }
+    }
+
 
     pub fn get_available_port() -> Option<u16> {
         (8000..9000).find(|port| port_is_available(*port))
@@ -86,13 +121,14 @@ pub mod server {
             print!("\nNOT!!! 8080 port_is_available");
             std::process::exit(0);
         }
-        if port_is_available(8081 as u16) {
-            print!("\n8081 port_is_available");
-            //std::process::exit(0);
-        } else {
-            print!("\nNOT!!! 8081 port_is_available");
-            std::process::exit(0);
-        }
+        // //gnostr-hyper
+        // if port_is_available(8081 as u16) {
+        //     print!("\n8081 port_is_available");
+        //     //std::process::exit(0);
+        // } else {
+        //     print!("\nNOT!!! 8081 port_is_available");
+        //     std::process::exit(0);
+        // }
 
         let tcp = TcpListener::bind(listen_address);
 

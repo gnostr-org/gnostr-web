@@ -179,9 +179,9 @@ more:## 	more help
 all: gnostr-web gnostr-hyper-service
 	gnostr-web & wait & gnostr-hyper &
 gnostr-web:
-	cargo install --bins --path . & wait
+	cargo install --bins --path .
 gnostr-hyper-service:
-	cargo install --bins --path hyper & wait
+	cargo install --bins --path hyper
 
 -include Makefile
 
