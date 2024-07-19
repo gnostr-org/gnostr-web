@@ -191,16 +191,19 @@ initialize:## 	ensure submodules exist
 	git submodule update --init --recursive
 
 .ONESHELL:
-docker-start:venv
+venv:
+	@pipx install virtualenv --force -q || \
+	$(shell which python3) -m venv .venv 2>/dev/null || \
+	virtualenv .venv 2>/denv/null || true
+docker-start: venv
 ##docker-start
 ##	start docker on Linux or Darwin
 	@echo CI=$(CI)
-	@touch requirements.txt && $(PYTHON3) -m pip install    -q -r requirements.txt
-	@touch requirements.txt && $(PYTHON3) -m pip install -U       virtualenv
-	@test -d .venv || $(PYTHON3) -m virtualenv .venv
+	@touch requirements.txt
+	@test -d .venv || $(shell which python3) -m virtualenv .venv
 	@( \
-	   . .venv/bin/activate; pip install -q -r requirements.txt; \
-	   python3 -m pip install -q pipenv \
+	   . .venv/bin/activate; pip install -r requirements.txt; \
+	   python3 -m pip install -q pipenv || pipx install pipenv \
 	   pip install -q --upgrade pip; \
 	);
 	@( \
@@ -212,7 +215,7 @@ docker-start:venv
 	    if [[ '$(OS)' == 'Darwin' ]]; then\
 	    echo $(CI);\
 	    if [[ '$(CI)' != 'True' ]]; then\
-	     type -P docker && open --background -a /./Applications/Docker.app/Contents/MacOS/Docker || brew install --cask docker;\
+	     type -P docker && open --background -a /./Applications/Docker.app || brew install --cask docker;\
 	    fi;\
 	    fi;\
 	sleep 1;\
