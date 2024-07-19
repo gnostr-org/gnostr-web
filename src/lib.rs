@@ -56,8 +56,44 @@ pub mod server {
     ///    run_server("0.0.0.0:8080", paths);
     /// }
     /// ```
+
+    pub fn get_available_port() -> Option<u16> {
+        (8000..9000).find(|port| port_is_available(*port))
+    }
+
+    pub fn port_is_available(port: u16) -> bool {
+        match TcpListener::bind(("0.0.0.0", port)) {
+            Ok(_) => true,
+            Err(_) => false,
+        }
+    }
+
     pub fn run_server(listen_address: &str, paths: Paths) {
-        println!("http://{}", listen_address);
+        println!("\nhttp://{}", listen_address);
+
+        let v: Vec<&str> = listen_address.split(":").collect();
+        print!("\nv[0]={:?}", v[0]);
+        print!("\nv[1]={:?}", v[1]);
+
+        // use std::ops::Deref;
+        // let port: &u16 = v[1] as u16;
+        //let port: &u16 = &(v[1] as u16);
+        //if port_is_available(port.deref(v[1]) as u16) {}
+        if port_is_available(8080 as u16) {
+            print!("\n8080 port_is_available");
+            //std::process::exit(0);
+        } else {
+            print!("\nNOT!!! 8080 port_is_available");
+            std::process::exit(0);
+        }
+        if port_is_available(8081 as u16) {
+            print!("\n8081 port_is_available");
+            //std::process::exit(0);
+        } else {
+            print!("\nNOT!!! 8081 port_is_available");
+            std::process::exit(0);
+        }
+
         let tcp = TcpListener::bind(listen_address);
 
         match tcp {
