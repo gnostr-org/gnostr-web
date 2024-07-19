@@ -42,9 +42,53 @@ async fn main() {
         }
     });
 
+    use std::env;
+    //use std::net::SocketAddr;
+    //use std::net::ToSocketAddrs;
+
+    // let mut addr: SocketAddr = 
+        // "0.0.0.0".parse().expect("address creation works");
     let addr = "0.0.0.0:8081".parse().expect("address creation works");
+    let args: Vec<String> = env::args().collect();
+    if args.len() == 0 {
+        print!("\n0 {}",args.len());
+    }
+    if args.len() >= 1 {
+        print!("\n0 {}",args.len());
+        print!("\n >=1 {}",&args[0]);
+    }
+    if args.len() >= 2 {
+        print!("\n0 {}",args.len());
+        print!("\n >=1 {}",&args[0]);
+        print!("\n >=2 {}",&args[1]);
+    }
+    if args.len() == 3 {
+        print!("\n0 {}",args.len());
+        print!("\n >=1 {}",&args[0]);
+        print!("\n >=2 {}",&args[1]);
+        print!("\n >=3 {}",&args[2]);
+        let query = &args[1];
+        let file_path = &args[2];
+        //addr = format!("0.0.0.0:{:}", &args[2].to_socket_addrs());
+        //addr =  &args[2].to_socket_addrs().unwrap();
+        println!("\nSearching for {query}\n");
+        println!("\nIn file {file_path}\n");
+    }
+
+
+    // for argument in env::args() {
+    //     println!("{argument}");
+    //     if argument == "-p" || argument == "--port" {
+    //         //addr = format!("0.0.0.0:{:}", argument.to_socket_addrs());
+    //     } else {
+    //         //assume port number
+    //         //addr = format!("0.0.0.0:{:}", argument.to_socket_addrs());
+    //     }
+
+    // }
+    print!("\nhost=0.0.0.0 addr={}\n",addr);
     let server = Server::bind(&addr).serve(new_service);
-    println!("\ngnostr-hyper listening on http://{}", addr);
+    println!("\ngnostr-hyper listening on http://{}\n", addr);
     let _ = server.await;
 }
 
