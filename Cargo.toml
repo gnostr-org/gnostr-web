@@ -2,7 +2,7 @@
 name = "gnostr-web"
 version = "0.0.2"
 edition = "2021"
-authors = ["Tej Magar", "@RandyMcMillan <admin@gnostr.org>"]
+authors = ["gnostr admin@gnostr.org", "Tej Magar"]
 description = "gnostr-web: a gnostr web/hyper web service."
 license = "MIT"
 documentation = "https://tejmagar.github.io/rusty-web/"
