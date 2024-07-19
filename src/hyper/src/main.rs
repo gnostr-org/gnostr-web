@@ -53,22 +53,22 @@ async fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() == 0 {
     let mut addr: SocketAddr = 
-        "0.0.0.0:8082".parse().expect("address creation works");
+        "0.0.0.0:8080".parse().expect("address creation works");
         print!("\n0 {}",args.len());
     let server = Server::bind(&addr).serve(new_service.clone());
     println!("\ngnostr-hyper listening on http://{}\n", addr);
     let _ = server.await;
     }
-    if args.len() >= 1 {
+    if args.len() == 1 {
     let mut addr: SocketAddr = 
-        "0.0.0.0:8082".parse().expect("address creation works");
+        "0.0.0.0:8081".parse().expect("address creation works");
         print!("\n0 {}",args.len());
         print!("\n >=1 {}",&args[0]);
     let server = Server::bind(&addr).serve(new_service.clone());
     println!("\ngnostr-hyper listening on http://{}\n", addr);
     let _ = server.await;
     }
-    if args.len() >= 2 {
+    if args.len() == 2 {
     let mut addr: SocketAddr = 
         "0.0.0.0:8082".parse().expect("address creation works");
         print!("\n0 {}",args.len());
@@ -80,7 +80,7 @@ async fn main() {
     }
     if args.len() == 3 {
     let mut addr: SocketAddr = 
-        "0.0.0.0:8082".parse().expect("address creation works");
+        "0.0.0.0:8083".parse().expect("address creation works");
         print!("\n0 {}",args.len());
         print!("\n >=1 {}",&args[0]);
         print!("\n >=2 {}",&args[1]);
