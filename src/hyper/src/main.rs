@@ -44,7 +44,7 @@ async fn main() {
 
     let addr = "0.0.0.0:8081".parse().expect("address creation works");
     let server = Server::bind(&addr).serve(new_service);
-    println!("Listening on http://{}", addr);
+    println!("\ngnostr-hyper listening on http://{}", addr);
     let _ = server.await;
 }
 
