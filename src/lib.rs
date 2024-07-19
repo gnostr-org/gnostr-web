@@ -38,11 +38,11 @@ pub mod server {
 
     /// Example usage
     /// ```rust
-    /// use tejmagar::paths::{Path, Paths};
-    /// use tejmagar::request::Request;
-    /// use tejmagar::response::Response;
-    /// use tejmagar::server::run_server;
-    /// use tejmagar::status::Status;
+    /// use gnostr_web::paths::{Path, Paths};
+    /// use gnostr_web::request::Request;
+    /// use gnostr_web::response::Response;
+    /// use gnostr_web::server::run_server;
+    /// use gnostr_web::status::Status;
     ///
     /// fn home(request: Request, mut response: Response) {
     ///    response.html(Status::Ok, "Home Page".to_string()).send();
