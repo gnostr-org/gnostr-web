@@ -5,19 +5,20 @@ use hyper::{
     Body, Request, Server,
 };
 
-use crate::param_handler;
-//use gnostr_web::handler::param_handler;
-use crate::send_handler;
-//use gnostr_web::handler::send_handler;
-use crate::test_handler;
-//use gnostr_web::handler::test_handler;
+//use crate::param_handler;
+use gnostr_web::handler::param_handler;
+//use crate::send_handler;
+use gnostr_web::handler::send_handler;
+//use crate::test_handler;
+use gnostr_web::handler::test_handler;
 
 use route_recognizer::Params;
-use router::Router;
+//use router::Router;
+use gnostr_web::router::Router;
 use std::sync::Arc;
 
-mod handler;
-mod router;
+//mod handler;
+//mod router;
 
 type Response = hyper::Response<hyper::Body>;
 type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
@@ -32,9 +33,12 @@ async fn main() {
     let some_state = "state".to_string();
 
     let mut router: Router = Router::new();
-    router.get("/test", Box::new(handler::test_handler));
-    router.post("/send", Box::new(handler::send_handler));
-    router.get("/params/:some_param", Box::new(handler::param_handler));
+    //router.get("/test", Box::new(handler::test_handler));
+    router.get("/test", Box::new(test_handler));
+    //router.post("/send", Box::new(handler::send_handler));
+    router.post("/send", Box::new(send_handler));
+    //router.get("/params/:some_param", Box::new(handler::param_handler));
+    router.get("/params/:some_param", Box::new(param_handler));
 
     let shared_router = Arc::new(router);
     let new_service = make_service_fn(move |_| {
