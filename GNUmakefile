@@ -181,7 +181,7 @@ all: gnostr-web gnostr-hyper-service
 gnostr-web:
 	cargo install --bins --path .
 gnostr-hyper-service:
-	cargo install --bins --path hyper
+	cargo install --bins --path .
 
 -include Makefile
 
