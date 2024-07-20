@@ -275,7 +275,7 @@ dependencies = [
 
 [[package]]
 name = "gnostr-web"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "async-trait",
  "bytes 0.5.6",
