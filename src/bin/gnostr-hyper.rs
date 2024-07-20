@@ -42,10 +42,66 @@ async fn main() {
         }
     });
 
-    let addr = "0.0.0.0:8081".parse().expect("address creation works");
-    let server = Server::bind(&addr).serve(new_service);
-    println!("\ngnostr-hyper listening on http://{}", addr);
+    use std::env;
+    //use std::net::SocketAddr;
+    //use std::net::ToSocketAddrs;
+
+    // let mut addr: SocketAddr = 
+        // "0.0.0.0".parse().expect("address creation works");
+    use std::net::SocketAddr;
+    //let mut addr = "0.0.0.0:8081".parse().expect("address creation works");
+    let args: Vec<String> = env::args().collect();
+    if args.len() == 0 {
+    let mut addr: SocketAddr = 
+        "0.0.0.0:8080".parse().expect("address creation works");
+        print!("\n0 {}",args.len());
+    let server = Server::bind(&addr).serve(new_service.clone());
+    println!("\ngnostr-hyper listening on http://{}\n", addr);
     let _ = server.await;
+    }
+    if args.len() == 1 {
+    let mut addr: SocketAddr = 
+        "0.0.0.0:8081".parse().expect("address creation works");
+        print!("\n0 {}",args.len());
+        print!("\n >=1 {}",&args[0]);
+    let server = Server::bind(&addr).serve(new_service.clone());
+    println!("\ngnostr-hyper listening on http://{}\n", addr);
+    let _ = server.await;
+    }
+    if args.len() == 2 {
+    let mut addr: SocketAddr = 
+        "0.0.0.0:8082".parse().expect("address creation works");
+        print!("\n0 {}",args.len());
+        print!("\n >=1 {}",&args[0]);
+        print!("\n >=2 {}",&args[1]);
+    let server = Server::bind(&addr).serve(new_service.clone());
+    println!("\ngnostr-hyper listening on http://{}\n", addr);
+    let _ = server.await;
+    }
+    if args.len() == 3 {
+    let mut addr: SocketAddr = 
+        "0.0.0.0:8083".parse().expect("address creation works");
+        print!("\n0 {}",args.len());
+        print!("\n >=1 {}",&args[0]);
+        print!("\n >=2 {}",&args[1]);
+        print!("\n >=3 {}",&args[2]);
+        let query = &args[1];
+        let file_path = &args[2];
+        //addr = format!("0.0.0.0:{:}", &args[2].to_socket_addrs());
+        //addr =  &args[2].to_socket_addrs().unwrap();
+        println!("\nSearching for {query}\n");
+        println!("\nIn file {file_path}\n");
+
+    let server = Server::bind(&addr).serve(new_service.clone());
+    println!("\ngnostr-hyper listening on http://{}\n", addr);
+    let _ = server.await;
+
+
+    }
+    // print!("\nhost=0.0.0.0 addr={}\n",addr);
+    // let server = Server::bind(&addr).serve(new_service);
+    // println!("\ngnostr-hyper listening on http://{}\n", addr);
+    // let _ = server.await;
 }
 
 async fn route(
