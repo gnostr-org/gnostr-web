@@ -137,8 +137,8 @@ pub mod server {
 
     #[cfg(test)]
     mod tests {
-        use check_port;
-        #[test]
+        #[cfg(test)]
+        use crate::server::check_port;
         fn test_is_free() {
             assert!(check_port("127.0.0.1", 32200));
         }
