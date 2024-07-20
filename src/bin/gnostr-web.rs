@@ -1,7 +1,7 @@
 use gnostr_web::paths::{Path, Paths};
 use gnostr_web::request::Request;
 use gnostr_web::response::Response;
-use gnostr_web::server::run_server;
+use gnostr_web::server::{get_available_port, port_is_available, run_server};
 use gnostr_web::status::Status;
 
 static BOOTSTRAP_CSS: &'static str = "
@@ -49,5 +49,23 @@ fn about(_request: Request, mut response: Response) {
 fn main() {
     let paths: Paths = vec![Path::new("/", home), Path::new("/about", about)];
 
-    run_server("0.0.0.0:8080", paths);
+    let port_8080_is_avail: bool = port_is_available(8080 as u16); //{
+    if port_8080_is_avail {
+        print!("\n8080 port_is_available");
+        //std::process::exit(0);
+    } else {
+        print!("\nNOT!!! 8080 port_is_available");
+        std::process::exit(0);
+    }
+    let port_8081_is_avail: bool = port_is_available(8081 as u16); //{
+    if port_8081_is_avail {
+        print!("\n8081 port_is_available");
+        //std::process::exit(0);
+    } else {
+        print!("\nNOT!!! 8081 port_is_available");
+        std::process::exit(0);
+    }
+
+    let res = run_server("0.0.0.0:8080", paths);
+    print!("gnostr-web listening on {:?}", res);
 }

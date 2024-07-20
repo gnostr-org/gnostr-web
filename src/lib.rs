@@ -1,8 +1,61 @@
+use bytes::Bytes;
+use hyper::{
+    body::to_bytes,
+    service::{make_service_fn, service_fn},
+    Body, Request, Server,
+};
+use route_recognizer::Params;
+use router::Router;
+use std::sync::Arc;
+
+type Response = hyper::Response<hyper::Body>;
+type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
+
+#[derive(Clone, Debug)]
+pub struct AppState {
+    pub state_thing: String,
+}
+
+#[derive(Debug)]
+pub struct Context {
+    pub state: AppState,
+    pub req: Request<Body>,
+    pub params: Params,
+    body_bytes: Option<Bytes>,
+}
+
+impl Context {
+    pub fn new(state: AppState, req: Request<Body>, params: Params) -> Context {
+        Context {
+            state,
+            req,
+            params,
+            body_bytes: None,
+        }
+    }
+
+    pub async fn body_json<T: serde::de::DeserializeOwned>(&mut self) -> Result<T, Error> {
+        let body_bytes = match self.body_bytes {
+            Some(ref v) => v,
+            _ => {
+                let body = to_bytes(self.req.body_mut()).await?;
+                self.body_bytes = Some(body);
+                self.body_bytes.as_ref().expect("body_bytes was set above")
+            }
+        };
+        Ok(serde_json::from_slice(&body_bytes)?)
+    }
+}
+
+
+
 pub mod headers;
 pub mod parser;
 pub mod request;
 pub mod response;
 pub mod status;
+pub mod router;
+pub mod handler;
 
 pub mod paths {
     use crate::request::Request;
@@ -31,18 +84,18 @@ pub mod server {
     use crate::paths::{Paths, SinglePath};
     use crate::request::Request;
     use crate::response::Response;
-    use std::net::{Shutdown, TcpListener, TcpStream};
+    use std::net::{Shutdown, TcpListener, TcpStream, Ipv4Addr, UdpSocket};
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::{Arc, RwLock};
     use std::thread::spawn;
 
     /// Example usage
     /// ```rust
-    /// use tejmagar::paths::{Path, Paths};
-    /// use tejmagar::request::Request;
-    /// use tejmagar::response::Response;
-    /// use tejmagar::server::run_server;
-    /// use tejmagar::status::Status;
+    /// use gnostr_web::paths::{Path, Paths};
+    /// use gnostr_web::request::Request;
+    /// use gnostr_web::response::Response;
+    /// use gnostr_web::server::run_server;
+    /// use gnostr_web::status::Status;
     ///
     /// fn home(request: Request, mut response: Response) {
     ///    response.html(Status::Ok, "Home Page".to_string()).send();
@@ -56,8 +109,80 @@ pub mod server {
     ///    run_server("0.0.0.0:8080", paths);
     /// }
     /// ```
+
+
+    //use std::net::{Ipv4Addr, TcpListener, UdpSocket};
+    use std::str::FromStr;
+    pub type Port = u16;
+
+
+    pub fn is_tcp_port_available(host: &str, p: Port) -> bool {
+        matches!(
+            TcpListener::bind((Ipv4Addr::from_str(host).unwrap(), p)).is_ok(),
+            true
+        ) 
+    }
+
+    pub fn is_udp_port_available(host: &str, p: Port) -> bool {
+        matches!(
+            UdpSocket::bind((Ipv4Addr::from_str(host).unwrap(), p)).is_ok(),
+            true
+        )
+    }
+
+    pub fn check_port(host: &str, port: Port) -> bool {
+        is_tcp_port_available(host, port) && is_udp_port_available(host, port)
+    }
+
+
+    #[cfg(test)]
+    mod tests {
+        use check_port;
+        #[test]
+        fn test_is_free() {
+            assert!(check_port("127.0.0.1", 32200));
+        }
+    }
+
+
+    pub fn get_available_port() -> Option<u16> {
+        (8000..9000).find(|port| port_is_available(*port))
+    }
+
+    pub fn port_is_available(port: u16) -> bool {
+        match TcpListener::bind(("0.0.0.0", port)) {
+            Ok(_) => true,
+            Err(_) => false,
+        }
+    }
+
     pub fn run_server(listen_address: &str, paths: Paths) {
-        println!("http://{}", listen_address);
+        println!("\nhttp://{}", listen_address);
+
+        let v: Vec<&str> = listen_address.split(":").collect();
+        print!("\nv[0]={:?}", v[0]);
+        print!("\nv[1]={:?}", v[1]);
+
+        // use std::ops::Deref;
+        // let port: &u16 = v[1] as u16;
+        //let port: &u16 = &(v[1] as u16);
+        //if port_is_available(port.deref(v[1]) as u16) {}
+        if port_is_available(8080 as u16) {
+            print!("\n8080 port_is_available");
+            //std::process::exit(0);
+        } else {
+            print!("\nNOT!!! 8080 port_is_available");
+            std::process::exit(0);
+        }
+        // //gnostr-hyper
+        // if port_is_available(8081 as u16) {
+        //     print!("\n8081 port_is_available");
+        //     //std::process::exit(0);
+        // } else {
+        //     print!("\nNOT!!! 8081 port_is_available");
+        //     std::process::exit(0);
+        // }
+
         let tcp = TcpListener::bind(listen_address);
 
         match tcp {

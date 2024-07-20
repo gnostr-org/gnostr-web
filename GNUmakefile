@@ -177,11 +177,11 @@ more:## 	more help
 	#$(MAKE) -f Makefile help
 
 all: gnostr-web gnostr-hyper-service
+	gnostr-web & wait & gnostr-hyper
 gnostr-web:
-	cargo install --bins --path . & wait 10 &
+	cargo install --bins --path .
 gnostr-hyper-service:
-	cargo install --bins --path hyper & wait 10 & \
-		gnostr-web & gnostr-hyper-service
+	cargo install --bins --path .
 
 -include Makefile
 
