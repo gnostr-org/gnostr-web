@@ -42,7 +42,7 @@ async fn main() {
 
     let shared_router = Arc::new(router);
     let new_service = make_service_fn(move |_| {
-        let app_state = AppState {
+        let app_state = gnostr_web::AppState {
             state_thing: some_state.clone(),
         };
 
@@ -119,26 +119,26 @@ async fn main() {
 async fn route(
     router: Arc<Router>,
     req: Request<hyper::Body>,
-    app_state: AppState,
+    app_state: gnostr_web::AppState,
 ) -> Result<Response, Error> {
     let found_handler = router.route(req.uri().path(), req.method());
     let resp = found_handler
         .handler
-        .invoke(Context::new(app_state, req, found_handler.params))
+        .invoke(gnostr_web::Context::new(app_state, req, found_handler.params))
         .await;
     Ok(resp)
 }
 
 #[derive(Debug)]
 pub struct Context {
-    pub state: AppState,
+    pub state: gnostr_web::AppState,
     pub req: Request<Body>,
     pub params: Params,
     body_bytes: Option<Bytes>,
 }
 
 impl Context {
-    pub fn new(state: AppState, req: Request<Body>, params: Params) -> Context {
+    pub fn new(state: gnostr_web::AppState, req: Request<Body>, params: Params) -> Context {
         Context {
             state,
             req,
