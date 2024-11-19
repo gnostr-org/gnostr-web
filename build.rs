@@ -1,6 +1,7 @@
 use std::{
     io::Write,
     path::{Path, PathBuf},
+    process::Command,
 };
 
 use anyhow::Context;
@@ -25,13 +26,23 @@ fn run() -> anyhow::Result<()> {
 
     let out_dir = PathBuf::from(std::env::var("OUT_DIR").context("OUT_DIR not set by rustc")?);
     let statics_out_dir = out_dir.join("statics");
+    let statics_out_dir_css = statics_out_dir.join("css");
+    let statics_out_dir_css_style_css = statics_out_dir_css.join("style.css");
+    println!("{}", statics_out_dir_css_style_css.display());
 
     let paths = Paths {
         statics_in_dir: &statics_in_dir,
         statics_out_dir: &statics_out_dir,
     };
 
-    build_scss(paths).context("Failed to build CSS stylesheets")?;
+    if let Ok(output) = Command::new("cp").args([statics_out_dir_css_style_css, ".".into()]).output(){};
+    if let Ok(output) = Command::new("git").args(["rev-parse", "HEAD"]).output() {
+        if let Ok(git_hash) = String::from_utf8(output.stdout) {
+            build_scss(paths).context("Failed to build CSS stylesheets")?;
+            println!("cargo:rerun-if-changed={git_hash}");
+            println!("cargo:rustc-env=GIT_HASH={git_hash}");
+        }
+    }
 
     Ok(())
 }
