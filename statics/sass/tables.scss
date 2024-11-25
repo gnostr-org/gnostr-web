@@ -30,14 +30,14 @@ table.repositories {
   width: 100%;
 
   a {
-    color: $base2;
+    color: $base02;
 
     @media (prefers-color-scheme: dark) {
       color: darken($base2, 15%);
     }
 
     &:hover {
-      color: $base3;
+      color: $base03;
 
       @media (prefers-color-scheme: dark) {
         color: darken($base3, 15%);
@@ -48,12 +48,12 @@ table.repositories {
 
   tbody {
     tr {
-      color: $base1;
+      color: $base01;
       height: 1.3rem;
       vertical-align: middle;
 
       &:nth-child(odd) {
-        background: $base03;
+        background: $base3;
 
         @media (prefers-color-scheme: dark) {
           background: $base03;
@@ -61,7 +61,7 @@ table.repositories {
       }
 
       &:nth-child(even) {
-        background: $base02;
+        background: $base2;
 
         @media (prefers-color-scheme: dark) {
           background: $base02;
