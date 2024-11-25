@@ -35,7 +35,10 @@ fn run() -> anyhow::Result<()> {
         statics_out_dir: &statics_out_dir,
     };
 
-    if let Ok(output) = Command::new("cp").args([statics_out_dir_css_style_css, ".".into()]).output(){};
+    if let Ok(output) = Command::new("cp")
+        .args([statics_out_dir_css_style_css, ".".into()])
+        .output()
+    {};
     if let Ok(output) = Command::new("git").args(["rev-parse", "HEAD"]).output() {
         if let Ok(git_hash) = String::from_utf8(output.stdout) {
             build_scss(paths).context("Failed to build CSS stylesheets")?;
