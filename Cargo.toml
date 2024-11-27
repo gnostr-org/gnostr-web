@@ -1,5 +1,5 @@
 [package]
-name = "gnostr-web"
+name = "gnostr-gnit"
 description = "A gitweb/cgit-like interface"
 version = "0.0.1"
 edition = "2021"
