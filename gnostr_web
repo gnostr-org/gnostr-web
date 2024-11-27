@@ -9,5 +9,5 @@ if [ ! $(uname -s) = 'Darwin' ]; then
 	fi
 fi
 cargo install --path . --root .;
-./bin/rgit -d .gnostr/web 127.0.0.1:$PORT . & \
+./bin/gnostr-web -d .gnostr/web 127.0.0.1:$PORT . & \
 open http://localhost:$PORT
