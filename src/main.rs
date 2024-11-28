@@ -243,7 +243,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     info!("starting ssh git services...");
     let _ = sd_notify::notify(true, &[sd_notify::NotifyState::Ready]);
-    ssh::start_server(state).await?;
+    //ssh::start_server(state).await?;
 
     let listener = TcpListener::bind(&args.bind_address).await?;
     let app = app.into_make_service_with_connect_info::<SocketAddr>();
@@ -252,6 +252,7 @@ async fn main() -> Result<(), anyhow::Error> {
     tokio::select! {
         res = server => res.context("failed to run server"),
         res = indexer_wakeup_task => res.context("failed to run indexer"),
+        res = ssh::start_server(state) => res.context("failed to start ssh service"),
         _ = tokio::signal::ctrl_c() => {
             info!("Received ctrl-c, shutting down");
             Ok(())
