@@ -72,7 +72,7 @@ pub struct Args {
     /// Path to a directory in which the `RocksDB` database should be stored, will be created if it doesn't already exist
     ///
     /// The `RocksDB` database is very quick to generate, so this can be pointed to temporary storage
-    #[clap(short, long, value_parser, default_value = ".gnostr/web")]
+    #[clap(short, long, value_parser, default_value = ".gnostr/gnit/web")]
     db_store: PathBuf,
     /// The socket address to bind to (eg. 0.0.0.0:3333)
     #[clap(short, long, value_parser, default_value = "0.0.0.0:3333")]
