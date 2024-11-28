@@ -61,7 +61,7 @@ pub async fn handle(
         // ok, well this isn't ideal. the sender disappeared but we never got
         // an error. this shouldn't be possible, i guess lets just return an
         // internal error
-        return Err(anyhow!("Ran into inconsistent error state whilst building archive, please file an issue at https://github.com/w4/rgit/issues").into());
+        return Err(anyhow!("Ran into inconsistent error state whilst building archive, please file an issue at https://github.com/gnostr-org/gnostr-gnit/issues").into());
     }
 
     let file_name = query
