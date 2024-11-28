@@ -202,7 +202,7 @@ async fn main() -> Result<(), anyhow::Error> {
         }
     };
 
-    info!("priming web wervices...");
+    info!("initializing gnostr/gnit services...");
     prime_highlighters();
     info!("starting web service...");
 
