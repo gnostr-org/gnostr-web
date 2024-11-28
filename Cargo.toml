@@ -10,11 +10,11 @@ license = "WTFPL"
 members = ["tree-sitter-grammar-repository"]
 
 [[bin]]
-name = "gnostr-gnit-web"
+name = "gnostr-gnit"
 path = "src/main.rs"
 
 [[bin]]
-name = "git-gnit-web"
+name = "git-gnit"
 path = "src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

@@ -14,7 +14,7 @@ use std::{
 //use std::sync::Arc;
 
 mod state;
-use env_logger::Env;
+//use env_logger::Env;
 //use log::{error, info};
 use state::State;
 use tokio::sync::Mutex;
@@ -202,9 +202,9 @@ async fn main() -> Result<(), anyhow::Error> {
         }
     };
 
-    info!("Priming highlighters...");
+    info!("priming web wervices...");
     prime_highlighters();
-    info!("Server starting up...");
+    info!("starting web service...");
 
     let app = Router::new()
         .route("/", get(methods::index::handle))
@@ -237,11 +237,11 @@ async fn main() -> Result<(), anyhow::Error> {
 
 
 
-    info!("Loading state...");
+    info!("loading repo state...");
     let state = State::new().await?;
     let state = Arc::new(Mutex::new(state));
 
-    info!("Starting server...");
+    info!("starting ssh git services...");
     let _ = sd_notify::notify(true, &[sd_notify::NotifyState::Ready]);
     ssh::start_server(state).await?;
 
@@ -257,17 +257,6 @@ async fn main() -> Result<(), anyhow::Error> {
             Ok(())
         }
     }
-}
-
-async fn ssh_server_start() -> anyhow::Result<()> {
-    info!("Loading state...");
-    let state = State::new().await?;
-    let state = Arc::new(Mutex::new(state));
-
-    info!("Starting server...");
-    let _ = sd_notify::notify(true, &[sd_notify::NotifyState::Ready]);
-    ssh::start_server(state).await?;
-    Ok(())
 }
 
 fn open_db(args: &Args) -> Result<Arc<rocksdb::DB>, anyhow::Error> {
