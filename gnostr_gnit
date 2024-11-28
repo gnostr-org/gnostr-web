@@ -8,7 +8,6 @@ if [ ! $(uname -s) = 'Darwin' ]; then
 		alias open='xdg-open';
 	fi
 fi
-cargo install --path server --root .;
 cargo install --path . --root .;
 ./bin/gnostr-gnit-web -d .gnostr/web/$PORT -b 127.0.0.1:$PORT -s . & \
 open http://localhost:$PORT
