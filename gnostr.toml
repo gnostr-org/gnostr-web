@@ -1,1 +1,4 @@
-./server/gnostr.toml
+name = "gnostr"
+public = true
+members = ["gnostr"]
+failed_push_message = "Issues and patches can be emailed to moh@moh.ink"
