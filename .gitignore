@@ -1,3 +1,8 @@
+.crates.toml
+.crates2.json
+bin/
+style.css
+
 config.git
 
 server_key
