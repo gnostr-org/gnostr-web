@@ -21,7 +21,7 @@ impl State {
 
         let config: RepoConfig = {
             let text =
-                read_to_string(clone_dir.join(&config_name)).context("Couldn't read eejit.toml")?;
+                read_to_string(clone_dir.join(&config_name)).context("Couldn't read gnostr.toml")?;
             toml::from_str(&text)?
         };
 

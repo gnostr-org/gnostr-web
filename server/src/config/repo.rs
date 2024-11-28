@@ -27,7 +27,7 @@ pub async fn load_repo_config(repo_path: &Path) -> anyhow::Result<RepoConfig> {
     let clone_dir = temp_dir.path().join(repo_path);
     Repo::clone(repo_path, &clone_dir).await?;
 
-    let text = read_to_string(clone_dir.join(&config_name)).context("Couldn't read eejit.toml")?;
+    let text = read_to_string(clone_dir.join(&config_name)).context("Couldn't read gnostr.toml")?;
     Ok(toml::from_str(&text)?)
 }
 
