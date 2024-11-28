@@ -1978,31 +1978,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "gnostr-gnit-server"
-version = "0.2.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "clean-path",
- "colored",
- "comrak 0.18.0",
- "env_logger",
- "futures",
- "log",
- "russh",
- "russh-keys",
- "sd-notify",
- "serde",
- "shellwords",
- "tempfile",
- "tera",
- "textwrap",
- "tokio",
- "toml 0.7.8",
-]
-
-[[package]]
-name = "gnostr-gnit-web"
+name = "gnostr-gnit"
 version = "0.0.1"
 dependencies = [
  "anyhow",
@@ -2064,6 +2040,30 @@ dependencies = [
  "v_htmlescape",
  "xxhash-rust",
  "yoke",
+]
+
+[[package]]
+name = "gnostr-gnit-server"
+version = "0.2.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "clean-path",
+ "colored",
+ "comrak 0.18.0",
+ "env_logger",
+ "futures",
+ "log",
+ "russh",
+ "russh-keys",
+ "sd-notify",
+ "serde",
+ "shellwords",
+ "tempfile",
+ "tera",
+ "textwrap",
+ "tokio",
+ "toml 0.7.8",
 ]
 
 [[package]]

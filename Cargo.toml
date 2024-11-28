@@ -1,13 +1,13 @@
 [package]
-name = "gnostr-gnit-web"
-description = "gnostr:git server"
+name = "gnostr-gnit"
+description = "gnostr:git+nostr services"
 version = "0.0.1"
 edition = "2021"
 authors = ["gnostr <admin@gnostr.org>", "Jordan Doyle <jordan@doyle.la>"]
 license = "WTFPL"
 
 [workspace]
-members = ["ssh", "tree-sitter-grammar-repository"]
+members = ["server", "tree-sitter-grammar-repository"]
 
 [[bin]]
 name = "gnostr-gnit-web"
@@ -19,11 +19,11 @@ path = "src/main.rs"
 
 [[bin]]
 name = "gnostr-gnit-server"
-path = "ssh/src/main.rs"
+path = "server/src/main.rs"
 
 [[bin]]
 name = "git-gnit-server"
-path = "ssh/src/main.rs"
+path = "server/src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
