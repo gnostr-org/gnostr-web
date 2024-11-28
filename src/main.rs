@@ -11,6 +11,21 @@ use std::{
     time::Duration,
 };
 
+//use std::sync::Arc;
+
+mod state;
+use env_logger::Env;
+//use log::{error, info};
+use state::State;
+use tokio::sync::Mutex;
+
+mod config;
+//mod git;
+mod site;
+mod ssh;
+mod utils;
+mod vars;
+
 use anyhow::Context;
 use askama::Template;
 use axum::{
@@ -220,6 +235,16 @@ async fn main() -> Result<(), anyhow::Error> {
         .layer(Extension(Arc::new(args.scan_path)))
         .layer(CorsLayer::new());
 
+
+
+    info!("Loading state...");
+    let state = State::new().await?;
+    let state = Arc::new(Mutex::new(state));
+
+    info!("Starting server...");
+    let _ = sd_notify::notify(true, &[sd_notify::NotifyState::Ready]);
+    ssh::start_server(state).await?;
+
     let listener = TcpListener::bind(&args.bind_address).await?;
     let app = app.into_make_service_with_connect_info::<SocketAddr>();
     let server = axum::serve(listener, app).into_future();
@@ -232,6 +257,17 @@ async fn main() -> Result<(), anyhow::Error> {
             Ok(())
         }
     }
+}
+
+async fn ssh_server_start() -> anyhow::Result<()> {
+    info!("Loading state...");
+    let state = State::new().await?;
+    let state = Arc::new(Mutex::new(state));
+
+    info!("Starting server...");
+    let _ = sd_notify::notify(true, &[sd_notify::NotifyState::Ready]);
+    ssh::start_server(state).await?;
+    Ok(())
 }
 
 fn open_db(args: &Args) -> Result<Arc<rocksdb::DB>, anyhow::Error> {

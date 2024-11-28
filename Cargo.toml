@@ -7,7 +7,7 @@ authors = ["gnostr <admin@gnostr.org>", "Jordan Doyle <jordan@doyle.la>"]
 license = "WTFPL"
 
 [workspace]
-members = ["server", "tree-sitter-grammar-repository"]
+members = ["tree-sitter-grammar-repository"]
 
 [[bin]]
 name = "gnostr-gnit-web"
@@ -16,14 +16,6 @@ path = "src/main.rs"
 [[bin]]
 name = "git-gnit-web"
 path = "src/main.rs"
-
-[[bin]]
-name = "gnostr-gnit-server"
-path = "server/src/main.rs"
-
-[[bin]]
-name = "git-gnit-server"
-path = "server/src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
