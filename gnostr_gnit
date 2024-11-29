@@ -9,5 +9,5 @@ if [ ! $(uname -s) = 'Darwin' ]; then
 	fi
 fi
 cargo install --path . --root .;
-./bin/gnostr-gnit-web -d .gnostr/web/$PORT -b 127.0.0.1:$PORT -s . & \
-open http://localhost:$PORT
+open http://localhost:$PORT;
+./bin/gnostr-gnit -d .gnostr/web/$PORT -b 127.0.0.1:$PORT -s .
