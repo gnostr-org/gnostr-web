@@ -2,9 +2,10 @@ name: Docker
 
 on:
   schedule:
-    - cron: '45 20 * * *'
+    - cron: '0 0 * * *'
   push:
-    branches: [ main ]
+    tags: '**'
+    branches: [ ma** ]
 
 env:
   # Use docker.io for Docker Hub if empty
