@@ -184,34 +184,50 @@ more:## 	more help
 initialize:## 	ensure submodules exist
 	git submodule update --init --recursive
 
-## .ONESHELL:
-## docker-start:venv
-## ##docker-start
-## ##	start docker on Linux or Darwin
-## 	@echo CI=$(CI)
-## 	@touch requirements.txt && $(PYTHON3) -m pip install    -q -r requirements.txt
-## 	@touch requirements.txt && $(PYTHON3) -m pip install -U       virtualenv
-## 	@test -d .venv || $(PYTHON3) -m virtualenv .venv
-## 	@( \
-## 	   . .venv/bin/activate; pip install -q -r requirements.txt; \
-## 	   python3 -m pip install -q pipenv \
-## 	   pip install -q --upgrade pip; \
-## 	);
-## 	@( \
-## 	    while ! docker system info > /dev/null 2>&1; do\
-## 	    echo 'Waiting for docker to start...';\
-## 	    if [[ '$(OS)' == 'Linux' ]]; then\
-## 	     type -P systemctl && systemctl restart docker.service || type -P service && service restart docker;\
-## 	    fi;\
-## 	    if [[ '$(OS)' == 'Darwin' ]]; then\
-## 	    echo $(CI);\
-## 	    if [[ '$(CI)' != 'True' ]]; then\
-## 	     type -P docker && open --background -a /./Applications/Docker.app/Contents/MacOS/Docker || brew install --cask docker;\
-## 	    fi;\
-## 	    fi;\
-## 	sleep 1;\
-## 	done\
-## 	)
+#######################
+.ONESHELL:
+docker-start:## 	start docker
+	test -d .venv || pipx install virtualenv && virtualenv .venv
+	( \
+	   source .venv/bin/activate; pip install -q -r requirements.txt; \
+	   pip install -q --upgrade pip; \
+	);
+	( \
+	    while ! docker system info > /dev/null 2>&1; do\
+	    echo 'Waiting for docker to start...';\
+	    if [[ '$(OS)' == 'Linux' ]]; then\
+	     systemctl restart docker.service;\
+	    fi;\
+	    if [[ '$(OS)' == 'Darwin' ]]; then\
+	     open --background -a /./Applications/Docker.app/Contents/MacOS/Docker\ Desktop.app/Contents/MacOS/Docker\ Desktop;\
+	    fi;\
+	sleep 1;\
+	done\
+	)
+
+docker-install:## 	Download Docker.amd64.93002.dmg for MacOS Intel Compatibility
+
+	@[[ '$(shell uname -s)' == 'Darwin' ]] && echo "is Darwin" || echo "not Darwin";
+	@[[ '$(shell uname -m)' == 'x86_64' ]] && echo "is x86_64" || echo "not x86_64";
+	@[[ '$(shell uname -p)' == 'i386' ]]   && echo "is i386" || echo "not i386";
+	@[[ '$(shell uname -s)' == 'Darwin' ]] && [[ '$(shell uname -m)' == 'x86_64' ]]   && echo "is Darwin AND x86_64"     || echo "not Darwin AND x86_64";
+	@[[ '$(shell uname -s)' == 'Darwin' ]] && [[ ! '$(shell uname -m)' == 'x86_64' ]] && echo "is Darwin AND NOT x86_64" || echo "is NOT (Darwin AND NOT x86_64)";
+
+	@[[ '$(shell uname -s)' != 'Darwin' ]] && echo "not Darwin" || echo "is Darwin";
+	@[[ '$(shell uname -m)' != 'x86_64' ]] && echo "not x86_64" || echo "is x86_64";
+	@[[ '$(shell uname -p)' != 'i386' ]]   && echo "not i386" || echo "is i386";
+
+	@[[ '$(shell uname -s)' == 'Darwin'* ]] && sudo -S chown -R $(shell whoami):admin /Users/$(shell whoami)/.docker/buildx/current || echo
+	@[[ '$(shell uname -s)' == 'Darwin'* ]] && echo "Install Docker.amd64.93002.dmg if MacOS Catalina - known compatible version!"
+	@[[ '$(shell uname -s)' == 'Darwin'* ]] && curl -o Docker.amd64.93002.dmg -C - https://desktop.docker.com/mac/main/amd64/93002/Docker.dmg
+	@[[ '$(shell uname -s)' == 'Darwin'* ]] && echo "Using: $(shell type -P openssl)"
+	@[[ '$(shell uname -s)' == 'Darwin'* ]] && openssl dgst -sha256 -r Docker.amd64.93002.dmg | sed 's/*Docker.amd64.93002.dmg//'
+	@[[ '$(shell uname -s)' == 'Darwin'* ]] && echo "Using: $(shell type -P sha256sum)"
+	@[[ '$(shell uname -s)' == 'Darwin'* ]] && sha256sum               Docker.amd64.93002.dmg | sed 's/Docker.amd64.93002.dmg//'
+	@[[ '$(shell uname -s)' == 'Darwin'* ]] && echo "Expected hash:"
+	@[[ '$(shell uname -s)' == 'Darwin'* ]] && echo "bee41d646916e579b16b7fae014e2fb5e5e7b5dbaf7c1949821fd311d3ce430b"
+	@[[ '$(shell uname -s)' == 'Darwin'* ]] && type -P open 2>/dev/null && open Docker.amd64.93002.dmg
+
 
 detect:## 	install sequence got Darwin and Linux
 ##detect
