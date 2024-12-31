@@ -7,8 +7,8 @@ license = "CC0-1.0"
 readme = "README.md"
 keywords = ["p2p", "sharing", "bittorrent", "torrent"]
 categories = ["command-line-utilities"]
-homepage = "https://github.com/gnostr-org/gnostr-bits"
-repository = "https://github.com/gnostr-org/gnostr-bits"
+homepage = "https://github.com/gnostr-org/gnostr-bits/crates/modal"
+repository = "https://github.com/gnostr-org/gnostr-bits/crates/modal"
 edition = "2021"
 default-run = "gnostr-modal"
 
@@ -70,46 +70,46 @@ features = ["serde"]
 criterion = "0.5.1"
 temptree = "0.2.0"
 
-# [workspace]
-# members = [
-#   # generate documentation
-#   "bin/gen",
-# 
-#   # run commands for demo animation
-#   "bin/demo",
-# 
-#   # update changelog contributor credits
-#   "bin/update-contributors",
-# ]
+[workspace]
+members = [
+  # generate documentation
+  "bin/gen",
 
-## # Config for 'cargo dist'
-## [workspace.metadata.dist]
-## # The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
-## cargo-dist-version = "0.22.1"
-## # CI backends to support
-## ci = "github"
-## # The installers to generate for each app
-## installers = ["shell", "powershell", "homebrew"]
-## # A GitHub repo to push Homebrew formulas to
-## tap = "gnostr-org/homebrew-gnostr-org"
-## # Target platforms to build apps for (Rust target-triple syntax)
-## targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl", "x86_64-pc-windows-msvc"]
-## # Path that installers should place binaries in
-## install-path = "CARGO_HOME"
-## # Publish jobs to run in CI
-## publish-jobs = ["homebrew"]
-## # Whether to install an updater program
-## install-updater = true
+  # run commands for demo animation
+  "bin/demo",
+
+  # update changelog contributor credits
+  "bin/update-contributors",
+]
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.22.1"
+# CI backends to support
+ci = "github"
+# The installers to generate for each app
+installers = ["shell", "powershell", "homebrew"]
+# A GitHub repo to push Homebrew formulas to
+tap = "gnostr-org/homebrew-gnostr-org"
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl", "x86_64-pc-windows-msvc"]
+# Path that installers should place binaries in
+install-path = "CARGO_HOME"
+# Publish jobs to run in CI
+publish-jobs = ["homebrew"]
+# Whether to install an updater program
+install-updater = true
 
 [[bench]]
 name = "hasher"
 harness = false
 
 # enable release build link time optimization
-# [profile.release]
-# lto = true
+[profile.release]
+lto = true
 
 # The profile that 'cargo dist' will build with
-# [profile.dist]
-# inherits = "release"
-# lto = "thin"
+[profile.dist]
+inherits = "release"
+lto = "thin"
