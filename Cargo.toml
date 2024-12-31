@@ -1,7 +1,9 @@
 [package]
-name = "gnostr-gnit-web"
+name = "gnostr-gnit"
 description = "gnostr:git server"
-version = "0.0.1"
+homepage = "https://github.com/gnostr-org/gnostr-gnit/modal"
+repository = "https://github.com/gnostr-org/gnostr-gnit/modal"
+version = "0.0.2"
 edition = "2021"
 authors = ["gnostr <admin@gnostr.org>", "Jordan Doyle <jordan@doyle.la>"]
 license = "WTFPL"

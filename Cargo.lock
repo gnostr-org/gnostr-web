@@ -2002,8 +2002,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "gnostr-gnit-web"
-version = "0.0.1"
+name = "gnostr-gnit"
+version = "0.0.2"
 dependencies = [
  "anyhow",
  "arc-swap",

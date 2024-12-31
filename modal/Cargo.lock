@@ -656,7 +656,7 @@ dependencies = [
 
 [[package]]
 name = "gnostr-modal"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "ansi_term",
  "atty",
