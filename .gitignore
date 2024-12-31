@@ -1,5 +1,10 @@
 .gnostr
 
+#REF server.toml
+#name from public key config
+gnostr
+gnostr-user
+
 **.DS_Store
 
 server_key
