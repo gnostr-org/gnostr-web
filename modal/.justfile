@@ -131,6 +131,7 @@ dev-deps:
 	brew install imagemagick
 	brew install gifsicle
 	brew install asciinema
+	brew install help2man
 
 # update generated documentation
 gen:
