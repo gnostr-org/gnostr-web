@@ -10,11 +10,10 @@ use std::{
 type Result<T, E = Box<dyn Error>> = std::result::Result<T, E>;
 
 const SCRIPT: &str = "
-  ls -l 9front
-  gnostr-modal torrent create --input 9front
-  gnostr-modal torrent show --input 9front.torrent
-  gnostr-modal torrent verify --input 9front.torrent
-  gnostr-modal torrent link --input 9front.torrent
+  gnostr-modal torrent create --input . 
+  gnostr-modal torrent show --input ../release.torrent 
+  gnostr-modal torrent verify --input ../release.torrent 
+  gnostr-modal torrent link --input ../release.torrent 
 ";
 
 const PROMPT: &str = "\x1b[0;34m$\x1b[0m ";
@@ -47,7 +46,7 @@ fn replace(bin: &str) -> Result<PathBuf> {
 fn run(command: &[&str]) -> Result<()> {
   Command::new(replace(command[0])?)
     .args(&command[1..])
-    .current_dir("tmp")
+    .current_dir("./target/release")
     .status()?;
   Ok(())
 }

@@ -121,7 +121,7 @@ impl BinSubcommand {
   }
 
   pub(crate) fn slug(&self) -> String {
-    let mut slug = "imdl".to_string();
+    let mut slug = "gnostr-modal".to_string();
 
     for name in &self.command {
       slug.push('-');
@@ -132,7 +132,7 @@ impl BinSubcommand {
   }
 
   pub(crate) fn command_line(&self) -> String {
-    let mut line = "imdl".to_string();
+    let mut line = "gnostr-modal".to_string();
 
     for name in &self.command {
       line.push(' ');

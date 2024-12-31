@@ -37,7 +37,6 @@ colored = "2.0.0"
 comrak = { version = "0.28.0", default-features = false }
 const-hex = "1.12"
 const_format = "0.2"
-eejit = "0.2.1"
 env_logger = "0.10.0"
 flate2 = "1.0"
 futures = "0.3"

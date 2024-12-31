@@ -8,6 +8,6 @@ title          = "Intermodal"
 
 [output.html]
 additional-css     = ["custom.css"]
-curly-quotes       = true
+smart-punctuation  = true
 default-theme      = "ayu"
 git-repository-url = "https://github.com/casey/intermodal"
