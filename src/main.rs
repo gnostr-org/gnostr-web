@@ -1,10 +1,9 @@
 #![deny(clippy::pedantic)]
-
 use std::{
     borrow::Cow,
     fmt::{Display, Formatter},
     future::IntoFuture,
-    net::SocketAddr,
+    net::{IpAddr, Ipv4Addr, SocketAddr},
     path::PathBuf,
     str::FromStr,
     sync::{Arc, OnceLock},
@@ -74,9 +73,9 @@ pub struct Args {
     /// The `RocksDB` database is very quick to generate, so this can be pointed to temporary storage
     #[clap(short, long, value_parser, default_value = ".gnostr/web")]
     db_store: PathBuf,
-    /// The socket address to bind to (eg. 0.0.0.0:3333)
-    #[clap(short, long, value_parser, default_value = "0.0.0.0:3333")]
-    bind_address: SocketAddr,
+    /// The socket port to bind to (eg. 3333)
+    #[clap(short, long, value_parser, default_value = "3333")]
+    bind_port: u16,
     /// The path in which your bare Git repositories reside (will be scanned recursively)
     #[clap(short, long, value_parser, default_value = ".")]
     scan_path: PathBuf,
@@ -220,7 +219,13 @@ async fn main() -> Result<(), anyhow::Error> {
         .layer(Extension(Arc::new(args.scan_path)))
         .layer(CorsLayer::new());
 
-    let listener = TcpListener::bind(&args.bind_address).await?;
+
+	println!("{}", &args.bind_port);
+	let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), args.bind_port);
+
+    assert_eq!(socket.is_ipv4(), true);
+
+    let listener = TcpListener::bind(&socket).await?;
     let app = app.into_make_service_with_connect_info::<SocketAddr>();
     let server = axum::serve(listener, app).into_future();
 
