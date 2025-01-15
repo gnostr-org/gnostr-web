@@ -60,7 +60,7 @@ moka = { version = "0.12.0", features = ["future"] }
 path-clean = "1.0.1"
 rand = "0.8.5"
 rkyv = "0.8"
-rocksdb = { version = "0.22", default-features = false, features = ["snappy"] }
+rocksdb = { version = "0.23", default-features = false, features = ["snappy"] }
 russh = { version = "0.37.1", features = ["openssl"] }
 russh-keys = { version = "0.37.1" }
 rust-ini = "0.21.1"
