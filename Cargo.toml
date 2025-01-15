@@ -3,14 +3,14 @@ name = "gnostr-gnit"
 description = "gnostr:git server"
 homepage = "https://github.com/gnostr-org/gnostr-gnit/modal"
 repository = "https://github.com/gnostr-org/gnostr-gnit/modal"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2021"
 authors = ["gnostr <admin@gnostr.org>", "Jordan Doyle <jordan@doyle.la>"]
 license = "WTFPL"
 
 [workspace]
-members = [ "ssh", "tree-sitter-grammar-repository"]
-exclude = [ "examples/russh-client", "examples/russh-server"]
+members = ["ssh", "tree-sitter-grammar-repository"]
+exclude = ["examples/russh-client", "examples/russh-server"]
 
 [[bin]]
 name = "gnostr-gnit-server"
@@ -20,6 +20,7 @@ path = "ssh/src/main.rs"
 [[bin]]
 name = "gnostr-gnit-russh-client-example"
 path = "examples/russh-client/src/main.rs"
+
 [[bin]]
 name = "gnostr-gnit-russh-server-example"
 path = "examples/russh-server/src/main.rs"
@@ -84,8 +85,7 @@ simdutf8 = "0.1.5"
 tar = { version = "0.4", default-features = false }
 tempfile = "3.5.0"
 tera = "1.18.1"
-#[dependencies.serde]#version = "1.0.159"
-#features = ["derive"]
+#[dependencies.serde]#version = "1.0.159"#features = ["derive"]
 
 
 textwrap = "0.16.0"
@@ -113,10 +113,7 @@ uuid = { version = "1.7", features = ["v4"] }
 v_htmlescape = { version = "0.15", features = ["bytes-buf"] }
 xxhash-rust = { version = "0.8.12", features = ["const_xxh3"] }
 yoke = { version = "0.7.1", features = ["derive"] }
-#[dependencies.tokio]#version = "1.27.0"#features = ["full"]#[dependencies.toml]
-#version = "0.7.3"
-
-
+#[dependencies.tokio]#version = "1.27.0"#features = ["full"]#[dependencies.toml]#version = "0.7.3"
 
 
 [build-dependencies]
