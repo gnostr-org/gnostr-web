@@ -1,9 +1,40 @@
+use std::io::Write;
+use std::path::Path;
 use std::sync::Arc;
+use std::time::Duration;
 
-use anyhow::Context;
+use anyhow::Result;
 use async_trait::async_trait;
+use log::info;
 use russh::*;
 use russh_keys::*;
+use tokio::net::ToSocketAddrs;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    env_logger::builder()
+        .filter_level(log::LevelFilter::Debug)
+        .init();
+
+    let args: Vec<String> = std::env::args().collect();
+    let (host, key) = match args.get(1..3) {
+        Some(args) => (&args[0], &args[1]),
+        None => {
+            eprintln!("Usage: {} <host:port> <private-key-path>", args[0]);
+            std::process::exit(1);
+        }
+    };
+
+    info!("Connecting to {host}");
+    info!("Key path: {key}");
+
+    let mut ssh = Session::connect(key, "root", host).await?;
+    let r = ssh.call("whoami").await?;
+    assert!(r.success());
+    println!("Result: {}", r.output());
+    ssh.close().await?;
+    Ok(())
+}
 
 struct Client {}
 
@@ -13,58 +44,74 @@ impl client::Handler for Client {
 
     async fn check_server_key(
         self,
-        server_public_key: &key::PublicKey,
+        _server_public_key: &key::PublicKey,
     ) -> Result<(Self, bool), Self::Error> {
-        println!("check_server_key: {:?}", server_public_key);
         Ok((self, true))
     }
 }
 
-#[tokio::main]
-async fn main() {
-    env_logger::init();
-    let config = russh::client::Config::default();
-    let config = Arc::new(config);
-    let sh = Client {};
+pub struct Session {
+    session: client::Handle<Client>,
+}
 
-    let mut agent = russh_keys::agent::client::AgentClient::connect_env()
-        .await
-        .unwrap();
-    let mut identities = agent.request_identities().await.unwrap();
-    let mut session = russh::client::connect(config, ("127.0.0.1", 2223), sh)
-        .await
-        .unwrap();
-    let (_, auth_res) = session
-        .authenticate_future("pe", identities.pop().unwrap(), agent)
-        .await;
-    let auth_res = auth_res.unwrap();
-    println!("=== auth: {}", auth_res);
-    let mut channel = session
-        .channel_open_direct_tcpip("localhost", 8000, "localhost", 8001)
-        .await
-        .unwrap();
-    // let mut channel = session.channel_open_session().await.unwrap();
-    println!("=== after open channel");
-    let data = b"GET /les_affames.mkv HTTP/1.1\nUser-Agent: curl/7.68.0\nAccept: */*\nConnection: close\n\n";
-    channel.data(&data[..]).await.unwrap();
-    let mut f = std::fs::File::create("les_affames.mkv").unwrap();
-    while let Some(msg) = channel.wait().await {
-        use std::io::Write;
-        match msg {
-            russh::ChannelMsg::Data { ref data } => {
-                f.write_all(data).unwrap();
-            }
-            russh::ChannelMsg::Eof => {
-                f.flush().unwrap();
-                break;
-            }
-            _ => {}
-        }
+impl Session {
+    async fn connect<P: AsRef<Path>, A: ToSocketAddrs>(
+        key_path: P,
+        user: impl Into<String>,
+        addrs: A,
+    ) -> Result<Self> {
+        let key_pair = load_secret_key(key_path, None)?;
+        let config = client::Config {
+            connection_timeout: Some(Duration::from_secs(5)),
+            ..<_>::default()
+        };
+        let config = Arc::new(config);
+        let sh = Client {};
+        let mut session = client::connect(config, addrs, sh).await?;
+        let _auth_res = session
+            .authenticate_publickey(user, Arc::new(key_pair))
+            .await?;
+        Ok(Self { session })
     }
-    session
-        .disconnect(Disconnect::ByApplication, "", "English")
-        .await
-        .unwrap();
-    let res = session.await.context("session await");
-    println!("{:#?}", res);
+
+    async fn call(&mut self, command: &str) -> Result<CommandResult> {
+        let mut channel = self.session.channel_open_session().await?;
+        channel.exec(true, command).await?;
+        let mut output = Vec::new();
+        let mut code = None;
+        while let Some(msg) = channel.wait().await {
+            match msg {
+                russh::ChannelMsg::Data { ref data } => {
+                    output.write_all(data).unwrap();
+                }
+                russh::ChannelMsg::ExitStatus { exit_status } => {
+                    code = Some(exit_status);
+                }
+                _ => {}
+            }
+        }
+        Ok(CommandResult { output, code })
+    }
+
+    async fn close(&mut self) -> Result<()> {
+        self.session
+            .disconnect(Disconnect::ByApplication, "", "English")
+            .await?;
+        Ok(())
+    }
+}
+
+struct CommandResult {
+    output: Vec<u8>,
+    code: Option<u32>,
+}
+
+impl CommandResult {
+    fn output(&self) -> String {
+        String::from_utf8_lossy(&self.output).into()
+    }
+
+    fn success(&self) -> bool {
+        self.code == Some(0)
+    }
 }
