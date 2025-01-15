@@ -9,12 +9,20 @@ authors = ["gnostr <admin@gnostr.org>", "Jordan Doyle <jordan@doyle.la>"]
 license = "WTFPL"
 
 [workspace]
-members = ["ssh", "tree-sitter-grammar-repository"]
+members = [ "ssh", "tree-sitter-grammar-repository"]
+exclude = [ "examples/russh-client", "examples/russh-server"]
 
 [[bin]]
 name = "gnostr-gnit-server"
 path = "ssh/src/main.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "gnostr-gnit-russh-client-example"
+path = "examples/russh-client/src/main.rs"
+[[bin]]
+name = "gnostr-gnit-russh-server-example"
+path = "examples/russh-server/src/main.rs"
 
 [dependencies]
 anyhow = "1.0"
