@@ -3,213 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<script src="https://bitcoincore.tech/apps/bitcoinjs-ui/lib/bitcoinjs-lib.js"></script>
-<script src="https://bundle.run/bip39@3.0.4"></script>
-<script src="https://bundle.run/bip32@2.0.6"></script>
-<script src="https://bundle.run/buffer@6.0.3"></script>
-<script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
-<script src="https://unpkg.com/@noble/secp256k1@2.1.0/index.js"></script>
-<script src="https://unpkg.com/@noble/hashes@1.5.0/sha256.js"></script>
-<script src="https://unpkg.com/@noble/hashes@1.5.0/sha512.js"></script>
-<script src="https://unpkg.com/@noble/hashes@1.5.0/pbkdf12.js"></script>
-<script src="https://unpkg.com/@noble/hashes@1.5.0/utils.js"></script>
-<script src="https://unpkg.com/bip39@3.1.0/src/index.js"></script>
-<script src="https://unpkg.com/bip39@3.1.0/src/_wordlists.js"></script>
-<script src="https://bundle.run/browserify-cipher@1.0.1"></script>
-<script>
-function computeRawPrivkey( node ) {
-return bitcoinjs.ECPair.fromPrivateKey( node.privateKey, { network: bitcoinjs.networks.mainnet } );
-}
-</script>
-<script>
-function getPrivkeyHex( backupwords ) {
-var seed = bip39.mnemonicToSeedSync( backupwords );
-var node = bip32.fromSeed( seed );
-var path = "m/44'/1237'/0'/0/0";
-var root = node;
-var child = root.derivePath( path );
-return computeRawPrivkey( child );
-}
-</script>
-<script>
-function toHexString(byteArray) {
-return Array.from(byteArray, function(byte) {
-return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-}).join('');
-}
-</script>
 <title>{% block title %}gnostr/web{% endblock %}</title>
 <link rel="stylesheet" type="text/css" href="/style-{{ crate::GLOBAL_CSS_HASH }}.css" />
 {%- block head -%}{%- endblock %}
 </head>
 <body>
-<script>
-function normalizeRelayURL(e){let[t,...r]=e.trim().split("?");return"http"===t.slice(0,4)&&(t="ws"+t.slice(4)),"ws"!==t.slice(0,2)&&(t="wss://"+t),t.length&&"/"===t[t.length-1]&&(t=t.slice(0,-1)),[t,...r].join("?")}
-var relay = "wss://offchain.pub";
-relay = normalizeRelayURL( relay );
-var socket = new WebSocket( relay );
-
-function subscribe( pubkey ) {
-  var filter = {
-	  "authors": [
-		  pubkey
-	  ]
-  };
-  var subscription = [ "REQ", "my-sub", filter ];
-  subscription = JSON.stringify( subscription );
-  sessionStorage.subscription = subscription;
-  socket.send( sessionStorage.subscription );
-}
-
-socket.addEventListener( 'open', function( event ) {
-	document.body.innerHTML += "connected to " + relay + "<br><br>";
-	document.body.innerHTML += `try using these functions: <button onclick="subscribe( pubKeyMinus2 )">Subscribe to yourself</button> and <input type="text" id="note input" placeholder="enter a public note here" /><button onclick="makeNote( document.getElementById( 'note input' ).value )">Make public note</button><br><br>`;
-	document.body.innerHTML += `also this one: <input type="text" id="subscribable pubkey" placeholder="enter a pubkey you want to subscribe to" style="width: 100%; max-width: 300px;" /><button onclick="subscribe( document.getElementById( 'subscribable pubkey' ).value )">Subscribe to someone else</button><br><br>`;
-	document.body.innerHTML += `and this one: <input type="text" id="private note" placeholder="enter a private note here" /> <input type="text" id="recipient pubkey" placeholder="enter a pubkey to send a private message to" style="width: 100%; max-width: 300px;" /><button onclick="makePrivateNote( document.getElementById( 'private note' ).value, document.getElementById( 'recipient pubkey' ).value )">Make private note</button><br><br>`;
-});
-// Listen for messages
-socket.addEventListener( 'message', function( event ) {
-var event = JSON.parse( event.data );
-if ( !event[ 2 ] || !event[ 2 ].kind ) return;
-if ( event[ 2 ].kind == 4 ) {
-var i; for ( i=0; i<event[ 2 ].tags.length; i++ ) {
-if ( event[ 2 ].tags[ i ] && event[ 2 ].tags[ i ][ 1 ] ) {
-var recipient = event[ 2 ].tags[ i ][ 1 ];
-if ( recipient == pubKeyMinus2 ) {
-document.body.innerHTML += decrypt( privKey, event[ 2 ].pubkey, event[ 2 ].content ) + " (sent privately by " + event[ 2 ].pubkey + ")<br><br>";
-} else if ( event[ 2 ].pubkey == pubKeyMinus2 ) {
-document.body.innerHTML += decrypt( privKey, recipient, event[ 2 ].content ) + " (sent privately by " + event[ 2 ].pubkey + ")<br><br>";
-}
-}
-}
-} else if ( event[ 2 ].kind == 1 ) {
-document.body.innerHTML += event[ 2 ].content + " (sent publicly by " + event[ 2 ].pubkey + ")<br><br>";
-}
-});
-</script>
-<script>
-function makeNote( note ) {
-console.log( "note: '" + note + "'" );
-var now = Math.floor( ( new Date().getTime() ) / 1000 );
-console.log( now );
-var newevent = [
-0,
-pubKeyMinus2,
-now,
-1,
-[],
-note
-];
-var message = JSON.stringify( newevent );
-console.log( "message: '" + message + "'" );
-var msghash = bitcoinjs.crypto.sha256( message ).toString( 'hex' );
-console.log( "msghash: '" + msghash + "'" );
-nobleSecp256k1.schnorr.sign( msghash, privKey ).then( 
-value => { 
-sig = value;
-console.log( "the sig is:", sig );
-nobleSecp256k1.schnorr.verify( 
-sig,
-msghash,
-pubKeyMinus2
-).then(
-value => { 
-console.log( "is the signature valid for the above pubkey over the message 'test'?", value );
-if ( value ) {
-var fullevent = {
-"id": msghash,
-"pubkey": pubKeyMinus2,
-"created_at": now,
-"kind": 1,
-"tags": [],
-"content": note,
-"sig": sig
-}
-var sendable = [ "EVENT", fullevent ];
-sessionStorage.sendable = JSON.stringify( sendable );
-socket.send( '["EVENT",' + JSON.stringify( JSON.parse( sessionStorage.sendable )[ 1 ] ) + ']' );
-}
-}
-);
-}
-);
-}
-function makePrivateNote( note, recipientpubkey ) {
-console.log( "note: '" + note + "'" );
-var now = Math.floor( ( new Date().getTime() ) / 1000 );
-console.log( now );
-var privatenote = encrypt( privKey, recipientpubkey, note );
-var newevent = [
-0,
-pubKeyMinus2,
-now,
-4,
-[['p', recipientpubkey]],
-privatenote
-];
-var message = JSON.stringify( newevent );
-console.log( "message: '" + message + "'" );
-var msghash = bitcoinjs.crypto.sha256( message ).toString( 'hex' );
-console.log( "msghash: '" + msghash + "'" );
-nobleSecp256k1.schnorr.sign( msghash, privKey ).then(
-value => {
-sig = value;
-console.log( "the sig is:", sig );
-nobleSecp256k1.schnorr.verify(
-sig,
-msghash,
-pubKeyMinus2
-).then(
-value => {
-console.log( "is the signature valid for the above pubkey over the message 'test'?", value );
-if ( value ) {
-var fullevent = {
-"id": msghash,
-"pubkey": pubKeyMinus2,
-"created_at": now,
-"kind": 4,
-"tags": [['p', recipientpubkey]],
-"content": privatenote,
-"sig": sig
-}
-var sendable = [ "EVENT", fullevent ];
-sessionStorage.sendable = JSON.stringify( sendable );
-socket.send( '["EVENT",' + JSON.stringify( JSON.parse( sessionStorage.sendable )[ 1 ] ) + ']' );
- }
-}
-);
-}
-);
-}
-function encrypt( privkey, pubkey, text ) {
-var key = nobleSecp256k1.getSharedSecret( privkey, '02' + pubkey, true ).substring( 2 );
-var iv = window.crypto.getRandomValues( new Uint8Array(16) );
-var cipher = browserifyCipher.createCipheriv(
-'aes-256-cbc',
-buffer.Buffer.from( key, 'hex' ),
-iv
-);
-var encryptedMessage = cipher.update( text, "utf8", "base64" );
-emsg = encryptedMessage + cipher.final( "base64" );
-return emsg + "?iv=" + buffer.Buffer.from( iv.buffer ).toString( "base64");
-}
-function decrypt( privkey, pubkey, ciphertext ) {
-var [ emsg, iv ] = ciphertext.split( "?iv=" );
-var key = nobleSecp256k1.getSharedSecret( privkey, '02' + pubkey, true ).substring( 2 );
-var decipher = browserifyCipher.createDecipheriv(
-'aes-256-cbc',
-buffer.Buffer.from( key, "hex" ),
-buffer.Buffer.from( iv, "base64" )
-);
-var decryptedMessage = decipher.update( emsg, "base64" );
-dmsg = decryptedMessage + decipher.final( "utf8" );
-return dmsg;
-}
-</script>
 <header>
-    <h1>
-        <a href="/" class="no-hover" style="text-decoration:none; padding-bottom: 20px;">
-
+<h1>
+<a href="/" class="no-hover" style="text-decoration:none; padding-bottom: 20px;">
 
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30px" height="30px" viewBox="0 0 1024 1024" version="1.1">
@@ -217,12 +18,10 @@ return dmsg;
 <path style=" stroke:none;fill-rule:nonzero;fill:rgb(58.823529%,0%,58.823529%);fill-opacity:1;" d="M 978.710938 468.800781 L 555.1875 45.296875 C 530.800781 20.902344 491.246094 20.902344 466.839844 45.296875 L 378.902344 133.257812 L 490.453125 244.808594 C 516.382812 236.046875 546.109375 241.929688 566.769531 262.597656 C 587.554688 283.394531 593.382812 313.375 584.398438 339.398438 L 691.929688 446.917969 C 717.949219 437.945312 747.953125 443.75 768.726562 464.558594 C 797.757812 493.589844 797.757812 540.628906 768.726562 569.683594 C 739.675781 598.722656 692.636719 598.722656 663.574219 569.683594 C 641.742188 547.828125 636.335938 515.738281 647.410156 488.839844 L 547.121094 388.558594 L 547.121094 652.445312 C 554.195312 655.953125 560.878906 660.617188 566.769531 666.507812 C 595.800781 695.539062 595.800781 742.578125 566.769531 771.640625 C 537.738281 800.664062 490.664062 800.664062 461.65625 771.640625 C 432.625 742.570312 432.625 695.527344 461.65625 666.507812 C 468.832031 659.339844 477.140625 653.914062 486.007812 650.28125 L 486.007812 383.9375 C 477.140625 380.304688 468.855469 374.933594 461.65625 367.710938 C 439.664062 345.730469 434.375 313.449219 445.652344 286.445312 L 335.683594 176.457031 L 45.265625 466.839844 C 20.871094 491.257812 20.871094 530.8125 45.265625 555.207031 L 468.8125 978.722656 C 493.199219 1003.117188 532.742188 1003.117188 557.160156 978.722656 L 978.710938 557.171875 C 1003.109375 532.777344 1003.109375 493.199219 978.710938 468.800781 Z M 978.710938 468.800781 "/>
 </g>
 </svg>
-
-
-            gnostr:></a>
-        {% block header -%}
-        {%- endblock %}
-    </h1>
+gnostr:></a>
+{% block header -%}
+{%- endblock %}
+</h1>
 </header>
 
 {%- block nav -%}
@@ -247,19 +46,6 @@ return dmsg;
     {%- block content %}{% endblock -%}
 </main>
 
-<script>
-var backupwords = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon";
-<!-- document.write( "your backup words are " + backupwords + "<br><br>" ); -->
-var privKey = getPrivkeyHex( backupwords );
-privKey = privKey.__D.toString( 'hex' );
-var pubKey = nobleSecp256k1.getPublicKey( privKey, true );
-//be aware that not all valid bitcoin pubkeys are valid nostr pubkeys. Valid bitcoin pubkeys include uncompressed pubkeys (that start with 04), compressed pubkeys whose y coordinate is positive (that start with 02), and compressed pubkeys whose y coordinate is negative (that start with 03).
-//Only the ones that start with 02 are valid for nostr, which then allows us to chop off the 02 when storing the pubkey.
-//So if you change this code to generate random pubkeys, be sure to only use ones that have an 02 at the beginning.
-//The pubkeyMinus2 variable is the pubkey created a moment ago but without the 02 at the beginning.
-var pubKeyMinus2 = pubKey.substring( 2 );
-<!-- document.write( "your public key is " + pubKeyMinus2 + "<br><br>" ); -->
-</script>
 <footer>
 generated by <a href="https://github.com/gnostr-org/gnostr-web" target="_blank">gnostr/web</a> v{{ crate::CRATE_VERSION }}
 at {{ time::OffsetDateTime::now_utc()|format_time }}
