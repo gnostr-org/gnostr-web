@@ -16,7 +16,7 @@ license = "MIT"
 version = "1.0.70"
 
 [dependencies.async-trait]
-version = "0.1.68"
+version = "0.1.85"
 
 [dependencies.clean-path]
 version = "0.2.1"
