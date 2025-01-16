@@ -24,21 +24,26 @@ color: $blue
 
 body {
   font-family: sans-serif;
-  font-size: 0.9rem;
+  font-size: 1.0rem;
   tab-size: 4;
 }
 
 header {
   border-bottom: solid 1px $base2;
+  text-decoration:none
 }
 
 nav {
-  margin-top: 2rem;
-  border-bottom: solid 3px $base3;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  border-bottom: solid 2px $base3;
   display: flex;
+  font-size: 1.0rem;
 
   .grow {
+    margin-top: 1.5rem;
     flex-grow: 1;
+    padding-top: 1.5em;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -48,18 +53,17 @@ nav {
   a {
     padding: 2px 0.75em;
     color: $base1;
-    font-size: 110%;
+    font-size: 1.5rem;
+    text-decoration:none;
 
     @media (prefers-color-scheme: dark) {
-      color: $base2;
+      color: $base1;
     }
 
     &.active {
       color: $base1;
-      background-color: $base03;
 
       @media (prefers-color-scheme: dark) {
-        background: $base03;
       }
     }
   }
