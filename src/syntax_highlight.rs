@@ -8,7 +8,7 @@ use std::{
 };
 
 use comrak::adapters::SyntaxHighlighterAdapter;
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 use tree_sitter_grammar_repository::{Grammar, Language};
 use tree_sitter_highlight::{HighlightConfiguration, HighlightEvent, Highlighter};
 
@@ -166,6 +166,7 @@ pub enum FileIdentifier<'a> {
 pub fn format_file(content: &str, identifier: FileIdentifier<'_>) -> anyhow::Result<String> {
     let mut out = String::new();
     format_file_inner(&mut out, content, identifier, true)?;
+    info!("\n\n{}\n\n", &content);
     Ok(out)
 }
 
