@@ -49,6 +49,9 @@ pub async fn handle(
     }))
 }
 
+
+//TODO handle_event
+//     format for nostr
 pub async fn handle_plain(
     Extension(RepositoryPath(repository_path)): Extension<RepositoryPath>,
     Extension(git): Extension<Arc<Git>>,
@@ -97,7 +100,8 @@ pub async fn handle_plain(
     data.extend_from_slice(b"\n");
     data.extend_from_slice(commit.diff.as_bytes());
 
-    writeln!(data, "--\ngnostr-web {}", crate_version!()).unwrap();
+    //writeln!(data, "--\ngnostr-web {}", crate_version!()).unwrap();
+    writeln!(data).unwrap();
 
     Ok((headers, data.freeze()).into_response())
 }
