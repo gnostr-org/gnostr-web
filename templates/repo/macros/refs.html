@@ -1,3 +1,32 @@
+<!-- BEGIN AGE COMMIT AUTHOR TABLE -->
+{%- macro commit_table(commits) -%}
+    <thead>
+    <tr>
+        <th>Age</th>
+        <th>Commit message</th>
+        <th>Author</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for commit in commits -%}
+    {% set commit = commit.get() %}
+    <tr>
+        <td>
+            <time datetime="{{ commit.committer.time|format_time }}" title="{{ commit.committer.time|format_time }}">
+                {{- commit.committer.time|timeago -}}
+            </time>
+        </td>
+        <td><a href="/{{ repo.display() }}/commit/?id={{ commit.hash|hex }}">{{ commit.summary }}</a></td>
+        <td>
+            <img src="{{ commit.author.email|gravatar }}?s=13&d=retro" width="13" height="13">
+            {{ commit.author.name }}
+        </td>
+    </tr>
+    {% endfor -%}
+    </tbody>
+{%- endmacro -%}
+    <!-- END AGE COMMIT AUTHOR TABLE -->
 {%- macro branch_table(branches) -%}
     <thead>
     <tr>
@@ -54,34 +83,6 @@
                 {{- tagger.time|timeago -}}
             </time>
             {%- endif %}
-        </td>
-    </tr>
-    {% endfor -%}
-    </tbody>
-{%- endmacro -%}
-
-{%- macro commit_table(commits) -%}
-    <thead>
-    <tr>
-        <th>Age</th>
-        <th>Commit message</th>
-        <th>Author</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    {% for commit in commits -%}
-    {% set commit = commit.get() %}
-    <tr>
-        <td>
-            <time datetime="{{ commit.committer.time|format_time }}" title="{{ commit.committer.time|format_time }}">
-                {{- commit.committer.time|timeago -}}
-            </time>
-        </td>
-        <td><a href="/{{ repo.display() }}/commit/?id={{ commit.hash|hex }}">{{ commit.summary }}</a></td>
-        <td>
-            <img src="{{ commit.author.email|gravatar }}?s=13&d=retro" width="13" height="13">
-            {{ commit.author.name }}
         </td>
     </tr>
     {% endfor -%}
