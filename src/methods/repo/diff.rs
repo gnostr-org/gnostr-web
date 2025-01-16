@@ -97,7 +97,7 @@ pub async fn handle_plain(
     data.extend_from_slice(b"\n");
     data.extend_from_slice(commit.diff.as_bytes());
 
-    writeln!(data, "--\nrgit {}", crate_version!()).unwrap();
+    writeln!(data, "--\ngnostr-web {}", crate_version!()).unwrap();
 
     Ok((headers, data.freeze()).into_response())
 }
